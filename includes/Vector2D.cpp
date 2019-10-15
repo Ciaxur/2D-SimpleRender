@@ -1,4 +1,4 @@
-#include "Vector2D.h"
+#include "Vector_D.h"
 
 /* Creates a Default Vector2D */
 vec2::vec2() { x = y = 0; }
@@ -8,7 +8,7 @@ vec2::vec2() { x = y = 0; }
  *
  * @param _x - The x Value of Vector2D
  */
-vec2::vec2(int _x) {
+vec2::vec2(float _x) {
     x = _x;
     y = 0;
 }
@@ -19,7 +19,7 @@ vec2::vec2(int _x) {
  * @param _x - The x Value of Vector2D
  * @param _y - The y Value of Vector2D
  */
-vec2::vec2(int _x, int _y) {
+vec2::vec2(float _x, float _y) {
     x = _x;
     y = _y;
 }
@@ -30,7 +30,7 @@ vec2::vec2(int _x, int _y) {
  *
  * @param other - Reference to another Vector2D Instance
  */
-void vec2::add(vec2& other) {
+void vec2::add(vecX& other) {
     this->x += other.x;
     this->y += other.y;
 }
@@ -40,7 +40,7 @@ void vec2::add(vec2& other) {
  *
  * @param other - Reference to another Vector2D Instance
  */
-void vec2::sub(vec2& other) {
+void vec2::sub(vecX& other) {
     this->x -= other.x;
     this->y -= other.y;
 }
@@ -50,7 +50,7 @@ void vec2::sub(vec2& other) {
  *
  * @param other - Reference to another Vector2D Instance
  */
-void vec2::mult(vec2& other) {
+void vec2::mult(vecX& other) {
     this->x *= other.x;
     this->y *= other.y;
 }
@@ -60,7 +60,7 @@ void vec2::mult(vec2& other) {
  *
  * @param other - Reference to another Vector2D Instance
  */
-void vec2::div(vec2& other) {
+void vec2::div(vecX& other) {
     this->x /= other.x;
     this->y /= other.y;
 }
