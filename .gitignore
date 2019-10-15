@@ -1,2 +1,9 @@
+# General Files
 app
 *.out
+
+# Directory Files for MS-Windows
+dependencies/*
+MS Studio/x64
+MS Studio/.vs
+.vs
