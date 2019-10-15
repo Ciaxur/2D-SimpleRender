@@ -49,5 +49,11 @@
         "memory_resource": "cpp",
         "random": "cpp",
         "string": "cpp"
-    }
+    },
+    "C_Cpp.default.intelliSenseMode": "gcc-x64",
+    "C_Cpp.intelliSenseCacheSize": 12,
+    "C_Cpp.clang_format_style": "{BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 120, MaxEmptyLinesToKeep: 3, UseTab: Never, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 }",
+    "C_Cpp.default.includePath": ["./dependencies/**/*"],
+    "editor.formatOnSave": false,
+    "editor.formatOnType": true
 }
