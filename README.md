@@ -19,3 +19,4 @@ Obtaining the Binaries,
     - Must be placed under the following path **`dependencies\glew-2.1.0`**
 - Download the [**GLFW3 Binaries**](https://www.glfw.org/download.html) for Windows 64-bit
     - Must be placed under the following path **`dependencies\glfw-3.3`**
+.
