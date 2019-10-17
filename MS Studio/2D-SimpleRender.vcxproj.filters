@@ -24,13 +24,13 @@
     <ClCompile Include="..\src\includes\SimpleRender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\includes\Vector2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\includes\Vector3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\includes\Vector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\includes\Vector2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\includes\Vector3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -43,10 +43,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\Shaders\shader.frag">
+    <None Include="Shaders\shader.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="..\src\Shaders\shader.vert">
+    <None Include="Shaders\shader.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>

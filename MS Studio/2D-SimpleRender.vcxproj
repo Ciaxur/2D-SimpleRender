@@ -99,8 +99,8 @@
   <ItemGroup>
     <ClCompile Include="..\src\includes\SimpleRender.cpp" />
     <ClCompile Include="..\src\includes\Vector.cpp" />
-    <ClCompile Include="..\src\includes\Vector2D.cpp" />
-    <ClCompile Include="..\src\includes\Vector3D.cpp" />
+    <ClCompile Include="..\src\includes\Vector2.cpp" />
+    <ClCompile Include="..\src\includes\Vector3.cpp" />
     <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -108,8 +108,8 @@
     <ClInclude Include="..\src\includes\Vector.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\Shaders\shader.frag" />
-    <None Include="..\src\Shaders\shader.vert" />
+    <None Include="Shaders\shader.frag" />
+    <None Include="Shaders\shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
