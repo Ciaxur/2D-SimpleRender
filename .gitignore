@@ -5,4 +5,5 @@ app
 # Directory Files for MS-Windows
 MS Studio/x64
 MS Studio/.vs
+MS Studio/Shaders/
 .vs
