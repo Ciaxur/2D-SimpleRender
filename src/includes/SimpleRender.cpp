@@ -103,7 +103,7 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
 
     /* 1. Specify how to Interpret the Data */
     glVertexAttribPointer( //
-        0,                 // Which Index Attribute to Configure
+        0,                 // Which Index Attribute to Configure (At Location 0)
         3,                 // There are Values per Vertex (x,y,z)
         GL_FLOAT,          // Type of Data in the Array
         GL_FALSE,          // Normalize?
@@ -204,6 +204,7 @@ void SimpleRender::processInput(GLFWwindow *window) {
  *      is ready!
  ***********************************************************
  */
+
 SimpleRender::SimpleRender(unsigned int  w, unsigned int  h, const char *title) : WIDTH(w), HEIGHT(h) {
     this->title = title;
     InitRender();

@@ -40,12 +40,12 @@ struct BufferData {
 class SimpleRender {
   private: // Private Variables | GL Window Data
     GLFWwindow *window;
-    GLuint programID;
     const char *title = "GLFW Window";
     const unsigned int WIDTH = 400;
     const unsigned int HEIGHT = 400;
 
   protected: // Shared Variables
+	 GLuint programID;
      std::vector<BufferData> bufferData; // Store References the Buffer Data
 
 
@@ -65,6 +65,8 @@ class SimpleRender {
     /* GLFW Error Callback */
     static void error_callback(int error, const char *description);
 
+
+  protected: // Shared Methods
     /**
      * Initializes Source Code of given shaderType
      * @param srcFile - The Source Code path for the Shader
@@ -73,8 +75,6 @@ class SimpleRender {
      */
     static GLuint InitShader(std::string srcFile, GLenum shaderType);
 
-
-  protected: // Shared Methods
     /**
      * Creates Buffer data for Verticies & Indicies provided
      *  by creating a VAO linked to a VBO and EBO.
