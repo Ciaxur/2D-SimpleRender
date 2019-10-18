@@ -4,6 +4,7 @@
 
 // Core Libraries
 #include <sys/stat.h>
+#include <cmath>
 
 // OpenGL Macros
 #define WIDTH 800
