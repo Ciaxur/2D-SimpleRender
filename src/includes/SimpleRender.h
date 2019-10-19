@@ -44,9 +44,21 @@ class SimpleRender {
     const unsigned int WIDTH = 400;
     const unsigned int HEIGHT = 400;
 
+  protected: // Structure for Better Shader Handling
+	static struct Shader {
+		GLuint ID;										// Store Compiled Shader Program
+
+		Shader() : ID(-1) {};							// No Shader Given
+		Shader(GLuint _id) : ID(_id) {};				// Initialize Shader to precompiled Program
+
+		void use();									// Uses Current Program (If any)
+		void compile(const char*, const char*);		// Compiles Given Shader Files (Vertex, Fragment)
+	};
+
   protected: // Shared Variables
-	 GLuint programID;
+	 Shader defaultShader;
      std::vector<BufferData> bufferData; // Store References the Buffer Data
+	 
 
 
   private: // Private Methods (Static - Callbacks)

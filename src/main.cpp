@@ -38,35 +38,10 @@ class App : public SimpleRender {
 			  VshaderLastMod = newVshaderLastMod;
 
 			  // Re-Compile Shaders
-			  GLuint vertShader = InitShader("./Shaders/shader.vert", GL_VERTEX_SHADER);
-			  GLuint fragShader = InitShader("./Shaders/shader.frag", GL_FRAGMENT_SHADER);
-			  GLuint newProgramID;
-
-			  // Attach & Link Shaders
-			  if (vertShader != -1 && fragShader != -1) {
-				  newProgramID = glCreateProgram();
-
-				  glAttachShader(newProgramID, vertShader);
-				  glAttachShader(newProgramID, fragShader);
-				  glLinkProgram(newProgramID);
-
-				  // Check for Linking Errors
-				  char infoLog[512];
-				  int success;
-				  glGetProgramiv(newProgramID, GL_LINK_STATUS, &success);
-				  if (!success) {
-					  glGetProgramInfoLog(newProgramID, 512, NULL, infoLog);
-					  std::cerr << "Program Linking ERROR: Failed to link\n" << infoLog;
+			  // Attach & Link Shaders & Use
+			  defaultShader.compile("./Shaders/shader.vert", "./Shaders/shader.frag");
 				  }
-
-				  // Success, set new ProgramID
-				  else {
-					  std::cout << "Program Shader Compiled Successfuly!\n";
-					  programID = newProgramID;
 				  }
-			  }
-		  }
-	  }
 
   public:
 	  App(unsigned int  width, unsigned int  height, const char* title)
@@ -77,6 +52,10 @@ class App : public SimpleRender {
 
 
 	  void Preload() {
+		  // Load in Default Shaders
+		  defaultShader.compile("./Shaders/shader.vert", "./Shaders/shader.frag");
+
+
 		  // Create some Verticies
 		  std::vector<Vector3> verts = {
 			{ -0.4f, -0.2f, 0.0f },     // Bottom-Left
@@ -108,7 +87,7 @@ class App : public SimpleRender {
 	  }
 
 	  void Draw() {
-		  glUseProgram(programID);			// Use Default Program
+		  defaultShader.use();			// Use Default Program
 
 		  float timeVal = glfwGetTime();
 
@@ -116,7 +95,7 @@ class App : public SimpleRender {
 		  float greenVal = (sin(timeVal) / 8.0f) + 0.5f;
 		  float blueVal = (sin(timeVal) / 4.0f) + 0.8f;
 
-		  GLuint colorLocation = glGetAttribLocation(programID, "rgbaColor");
+		  GLuint colorLocation = glGetAttribLocation(defaultShader.ID, "rgbaColor");
 		  glVertexAttrib4f(colorLocation, redVal, greenVal, blueVal, 1.0f);
 
 

@@ -138,7 +138,7 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
 
 void SimpleRender::Draw() {
     // Draw the Object
-    glUseProgram(programID);			// Use Default Program
+	defaultShader.use();
 
     for (BufferData &bd : bufferData) {
         glBindVertexArray(bd.VAO);
@@ -154,6 +154,10 @@ void SimpleRender::Draw() {
 }
 
 void SimpleRender::Preload() {
+	// Load in Default Shaders
+	defaultShader.compile("Shaders/shader.vert", "Shaders/shader.frag");
+
+
     // Create the Data
     // clang-format off
         GLfloat verticies[] = {
@@ -266,36 +270,6 @@ int SimpleRender::run() {
         return -1;
     }
 
-    /** Initialize the Shaders from File Input
-     *      - Compile Shaders
-     *      - Attach their Reference IDs to programID
-     *      - Link the Program
-     */
-    GLuint vertShader = InitShader("./Shaders/shader.vert", GL_VERTEX_SHADER);
-    GLuint fragShader = InitShader("./Shaders/shader.frag", GL_FRAGMENT_SHADER);
-
-    // Attach & Link Shaders
-    if (vertShader != -1 && fragShader != -1) {
-        programID = glCreateProgram();
-
-        glAttachShader(programID, vertShader);
-        glAttachShader(programID, fragShader);
-        glLinkProgram(programID);
-
-        // Check for Linking Errors
-        char infoLog[512];
-        int success;
-        glGetProgramiv(programID, GL_LINK_STATUS, &success);
-        if (!success) {
-            glGetProgramInfoLog(programID, 512, NULL, infoLog);
-            std::cerr << "Program Linking ERROR: Failed to link\n" << infoLog;
-        }
-    }
-
-    // Free up Space (No need for the shaders anymore)
-    glDeleteShader(vertShader);
-    glDeleteShader(fragShader);
-
 
     /* Run Pre-Start Function */
     Preload();
@@ -322,4 +296,58 @@ int SimpleRender::run() {
 
     // No Issues
     return 0;
+}
+
+
+/* 
+ ***********************************************************
+ * Shader Structure
+ *
+ *	- Ease of Use for Shaders
+ *  - Compiles and Stores Shader Attributes
+ ***********************************************************
+ */
+
+void SimpleRender::Shader::use() {
+	if (status)
+		glUseProgram(ID);	// Make Sure ther IS a Valid Program ID
+	else
+		std::cerr << "Shader Struct: No Program to use!\n";
+}
+
+void SimpleRender::Shader::compile(const char* vertFilePath, const char* fragFilePath) {
+	// Initialize the Shaders
+	GLuint fragShader = InitShader(fragFilePath, GL_FRAGMENT_SHADER);
+	GLuint vertShader = InitShader(vertFilePath, GL_VERTEX_SHADER);
+
+	// Make sure Fragment Shaders Compiled Correctly
+	// Attach & Link Shaders
+	if (vertShader != -1 && fragShader != -1) {
+		ID = glCreateProgram();
+
+		glAttachShader(ID, vertShader);
+		glAttachShader(ID, fragShader);
+		glLinkProgram(ID);
+
+		// Check for Linking Errors
+		char infoLog[512];
+		int success;
+		glGetProgramiv(ID, GL_LINK_STATUS, &success);
+		if (!success) {
+			glGetProgramInfoLog(ID, 512, NULL, infoLog);
+			std::cerr << "Program Linking ERROR: Failed to link\n" << infoLog;
+
+			status = false;
+		}
+
+		// Success
+		else {
+			std::cout << "Program Shader Compiled Successfuly!\n";
+			status = true;
+
+			// Delete Shaders
+			glDeleteShader(vertShader);
+			glDeleteShader(fragShader);
+		}
+	}
 }
