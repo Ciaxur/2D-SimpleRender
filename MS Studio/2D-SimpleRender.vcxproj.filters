@@ -16,6 +16,9 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{9773946a-1abe-4231-8f85-0dea070e6661}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Textures">
+      <UniqueIdentifier>{3d522dbe-05a6-4248-82e9-e170d1f8f367}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -24,29 +27,22 @@
     <ClCompile Include="..\src\includes\SimpleRender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\includes\Vector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\includes\Vector2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\includes\Vector3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\includes\SimpleRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\includes\Vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\shader.frag">
+    <Image Include="Textures\texture.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\shader.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="Shaders\shader.vert">
+    <None Include="..\Shaders\shader.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>

@@ -25,13 +25,15 @@
  *
  */
 struct BufferData {
-    BufferData(): VAO(0), VBO(0), EBO(0){};
+    BufferData(): VAO(0), VBO(0), EBO(0), textureID(0) {};
     BufferData(GLuint &_vao, GLuint &_vbo, GLuint &_ebo)
-        : VAO(_vao), VBO(_vbo), EBO(_ebo){};
+        : VAO(_vao), VBO(_vbo), EBO(_ebo), textureID(0){};
 
     GLuint VAO;
     GLuint VBO;
     GLuint EBO;
+
+	GLuint textureID;
 
     size_t indiciesElts = 0;
 };
@@ -46,13 +48,14 @@ class SimpleRender {
 
   protected: // Structure for Better Shader Handling
 	static struct Shader {
-		GLuint ID;										// Store Compiled Shader Program
+		bool	status;									// Keep track of Shader Status (False = Not Ready | True = Ready)
+		GLuint	ID;										// Store Compiled Shader Program
 
-		Shader() : ID(-1) {};							// No Shader Given
-		Shader(GLuint _id) : ID(_id) {};				// Initialize Shader to precompiled Program
+		Shader() : ID(0), status(false) {};				// No Shader Given
+		Shader(GLuint _id) : ID(_id), status(true) {};	// Initialize Shader to precompiled Program
 
-		void use();									// Uses Current Program (If any)
-		void compile(const char*, const char*);		// Compiles Given Shader Files (Vertex, Fragment)
+		void use();										// Uses Current Program (If any)
+		void compile(const char*, const char*);			// Compiles Given Shader Files (Vertex, Fragment)
 	};
 
   protected: // Shared Variables
@@ -111,7 +114,7 @@ class SimpleRender {
     /**
      * Data/Properties to configure prior to Drawing
      */
-    virtual void Preload();
+	virtual void Preload();
 
     /**
      * Handles User Input from given Window

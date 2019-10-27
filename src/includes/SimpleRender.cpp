@@ -82,9 +82,9 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
     glGenBuffers(1, &VBO);      // Create One Buffer
     glGenBuffers(1, &EBO);      // Create Buffer for EBO
 
-
     // Bind VAO & VBO Data
     glBindVertexArray(VAO);             // Bind the VAO
+	glEnableVertexAttribArray(0);		// Attribute aPos is Location 0, bind current Vertex Array to it
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // Tell OpenGL it's an Array Buffer
 
     /* Send the data into the Buffer Memory to Binded Buffer
@@ -110,7 +110,7 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
         3 * sizeof(float), // Stride till next Vertex, 3 Value of size Float per Vertix
         (void *)0          // Pointer to the Beginning position in the Buffer
     );
-    glEnableVertexAttribArray(0); // Enable the Attribute of Index for VAO
+	glDisableVertexAttribArray(0);		// Finished From aPos Attribute (Prevent others from using it)
 
 
 
