@@ -1,8 +1,8 @@
 build:
-	g++ ./src/*.cpp ./src/includes/*.cpp -lglfw -lGLEW -lGL -o app
+	g++ -I ./dependencies/stb_image ./src/*.cpp ./src/includes/*.cpp -std=c++17 -lglfw -lGLEW -lGL -o app
 
 build-debug:
-	g++ ./src/*.cpp ./src/includes/*.cpp -lglfw -lGLEW -lGL -g -o app
+	g++ -I ./dependencies/stb_image ./src/*.cpp ./src/includes/*.cpp -std=c++17 -lglfw -lGLEW -lGL -g -o app
 
 clean:
 	rm ./app
