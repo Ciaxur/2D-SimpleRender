@@ -1,5 +1,4 @@
-#ifndef SimpleRender_H
-#define SimpleRender_H
+#pragma once
 
 // Core Libraries
 #include <cstring>
@@ -12,31 +11,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-/**
- * Stores Data Objects of the There
- *  linked buffers.
- *      - Vertex Array Object       (VAO)
- *          - Buffer the holds the Verticies Array
- *      - Vertex Buffer Object      (VBO)
- *          - Vertex Buffer that holds all the configurations of Vertex Array
- *      - Element Buffer Object     (EBO)
- *          - Buffer that holds the indicies of how to draw Array Data
- *      - Number of Elements Indicies
- *
- */
-struct BufferData {
-    BufferData(): VAO(0), VBO(0), EBO(0), textureID(0) {};
-    BufferData(GLuint &_vao, GLuint &_vbo, GLuint &_ebo)
-        : VAO(_vao), VBO(_vbo), EBO(_ebo), textureID(0){};
+// Project Libraries
+#include "BufferData.h"
 
-    GLuint VAO;
-    GLuint VBO;
-    GLuint EBO;
-
-	GLuint textureID;
-
-    size_t indiciesElts = 0;
-};
 
 
 class SimpleRender {
@@ -105,6 +82,7 @@ class SimpleRender {
     static BufferData createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize);
 
 
+
   private: // Helper Functions
     /**
      * Draw loop
@@ -148,6 +126,3 @@ class SimpleRender {
      */
     int run();
 };
-
-
-#endif // !SimpleRender_H

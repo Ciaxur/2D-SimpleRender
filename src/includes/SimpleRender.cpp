@@ -75,47 +75,47 @@ GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
 
 BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize) {
     /* 0. Allocate Verticies Buffer Object on GPU */
-    GLuint VAO;                 // Vertex Buffer Objects References store in Vertex Array Object
-    GLuint VBO;                 // All Data and Configurations stored in Vertex Buffer Object
-    GLuint EBO;                 // Element BUffer Object that specifies Order of drawing existing verticies
-    glGenVertexArrays(1, &VAO); // Create a VAO
-    glGenBuffers(1, &VBO);      // Create One Buffer
-    glGenBuffers(1, &EBO);      // Create Buffer for EBO
-
-    // Bind VAO & VBO Data
-    glBindVertexArray(VAO);             // Bind the VAO
-	glEnableVertexAttribArray(0);		// Attribute aPos is Location 0, bind current Vertex Array to it
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // Tell OpenGL it's an Array Buffer
-
-    /* Send the data into the Buffer Memory to Binded Buffer
-     *  GL_STATIC_DRAW:     the data will most likely not change at all or very rarely.
-     *  GL_DYNAMIC_DRAW:    the data is likely to change a lot.
-     *  GL_STREAM_DRAW:     the data will change every time it is drawn.
-     */
-    glBufferData(GL_ARRAY_BUFFER, vSize, verticies, GL_STATIC_DRAW);
+	GLuint VAO;					// Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
+	GLuint vBuffer;             // Vertex Buffer
+    GLuint iBuffer;             // Element BUffer Object that specifies Order of drawing existing verticies
+	glGenVertexArrays(1, &VAO);	// Create a VAO
+    glGenBuffers(1, &vBuffer);  // Create One Buffer
+    glGenBuffers(1, &iBuffer);  // Create Buffer for Indicies
 
 
-    // Bind EBO Data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, indicies, GL_STATIC_DRAW);
+	/* 0.5. Bind the VAO so that the data is stored in it */
+	glBindVertexArray(VAO);
 
 
+    /* 1. Specify how to Interpret the Vertex Data (Buffer Attribute) */
+	// Bind Vertex Buffer Data
+	glBindBuffer(GL_ARRAY_BUFFER, vBuffer); // Tell OpenGL it's an Array Buffer
 
-    /* 1. Specify how to Interpret the Data */
+	/* Send the data into the Buffer Memory to Binded Buffer
+	 *  GL_STATIC_DRAW:     the data will most likely not change at all or very rarely.
+	 *  GL_DYNAMIC_DRAW:    the data is likely to change a lot.
+	 *  GL_STREAM_DRAW:     the data will change every time it is drawn.
+	 */
+	glBufferData(GL_ARRAY_BUFFER, vSize, verticies, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);			// Enable aPos Attribute
     glVertexAttribPointer( //
-        0,                 // Which Index Attribute to Configure (At Location 0)
+        0,                 // Which Index Attribute to Configure (At Location 0, aPos)
         3,                 // There are Values per Vertex (x,y,z)
         GL_FLOAT,          // Type of Data in the Array
         GL_FALSE,          // Normalize?
         3 * sizeof(float), // Stride till next Vertex, 3 Value of size Float per Vertix
         (void *)0          // Pointer to the Beginning position in the Buffer
     );
-	glDisableVertexAttribArray(0);		// Finished From aPos Attribute (Prevent others from using it)
 
 
+	/* 2. Store Index Elements Data */
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, indicies, GL_STATIC_DRAW);
+	glDisableVertexAttribArray(0);			// Disable aPos Attribute
 
-    /* 2. Object is ready to be Drawn */
-    BufferData data(VAO, VBO, EBO);                  // Create data Reference Object
+
+    /* 3. Object is ready to be Drawn */
+    BufferData data(vBuffer, iBuffer, VAO);               // Create data Reference Object
     data.indiciesElts = iSize / sizeof(indicies[0]); // Store Number of Indicies
 
     return data;
@@ -140,16 +140,23 @@ void SimpleRender::Draw() {
     // Draw the Object
 	defaultShader.use();
 
+
+	// Render all Buffer Data
     for (BufferData &bd : bufferData) {
-        glBindVertexArray(bd.VAO);
-        /**
-         * First Arg  - Mode to Draw in
-         * Second Arg - Number of Indicies to use
-         * Third Arg  - Data Type data is in
-         * Fourth Arg - Offsets in the data
-         */
-        glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+		// Enable aPos Attribute
+		glEnableVertexAttribArray(0);
+
+		// Bind Vertex Array Object
+		glBindVertexArray(bd.VAO);
+        
+		// Bind Indicies
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
+
+		// Draw the Elements
+        glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
+
+		// Finished with aPos Attribute
+		glDisableVertexAttribArray(0);
     }
 }
 
@@ -157,39 +164,46 @@ void SimpleRender::Preload() {
 	// Load in Default Shaders
 	defaultShader.compile("Shaders/shader.vert", "Shaders/shader.frag");
 
+	// Create Object1
+	GLfloat verticies[] = {
+		-0.4f, -0.2f, 0.0f,     // Bottom-Left
+		-0.2f, -0.2f, 0.0f,     // Bottom-Right
+		-0.4f,  0.2f, 0.0f,     // Top-Left
+		-0.2f,  0.2f, 0.0f      // Top-Right
+	};
 
-    // Create the Data
-    // clang-format off
-        GLfloat verticies[] = {
-            -0.4f, -0.2f, 0.0f,     // Bottom-Left
-            -0.2f, -0.2f, 0.0f,     // Bottom-Right
-            -0.4f,  0.2f, 0.0f,     // Top-Left
-            -0.2f,  0.2f, 0.0f      // Top-Right
-        };
+	GLuint indicies[] = {
+		0, 1, 2,                // First Triangle
+		1, 2, 3                 // Second Triangle
+	};
 
-        GLuint indicies[] = {
-            0, 1, 2,                // First Triangle
-            1, 2, 3                 // Second Triangle
-        };
-    // clang-format on
-
-    // Create and Bind Data to Buffer
-    bufferData.push_back(                                                      //
-        createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies)) //
-    );
+	// Create and Bind Data to Buffer
+	bufferData.push_back(                                                      //
+		createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies)) //
+	);
 
 
-    // clang-format off
-        GLfloat verticies2[] = {
-             0.0f,  0.3f, 0.0f,     // Bottom-Left
-             0.4f,  0.3f, 0.0f,     // Bottom-Right
-             0.0f, -0.3f, 0.0f,     // Top-Left
-             0.4f, -0.3f, 0.0f      // Top-Right
-        };
-    // clang-format on
+	// Create Object2
+    GLfloat verticies2[] = {
+            0.0f,  0.3f, 0.0f,     // Bottom-Left
+            0.4f,  0.3f, 0.0f,     // Bottom-Right
+            0.0f, -0.3f, 0.0f,     // Top-Left
+            0.4f, -0.3f, 0.0f      // Top-Right
+    };
     bufferData.push_back(                                                        //
         createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies)) //
     );
+
+
+	// DEBUG: Output Data Created
+	int i = 0;
+	for (BufferData& bd : bufferData) {
+		std::cout << "Buffer[" << i << "]:\n";
+		std::cout << "\tIndexBuffer: " << bd.indiciesBuffer << '\n';
+		std::cout << "\tIndexElements: " << bd.indiciesElts << '\n';
+		std::cout << "\tVertexBuffer: " << bd.verticiesBuffer << '\n';
+		std::cout << "\tTextureID: " << bd.textureID << "\n\n";
+	}
 }
 
 void SimpleRender::processInput(GLFWwindow *window) {

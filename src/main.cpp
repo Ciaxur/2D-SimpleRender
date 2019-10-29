@@ -5,10 +5,6 @@
 #include <sys/stat.h>
 #include <cmath>
 
-// Helper Libraries
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 // OpenGL Macros
 #define WIDTH 800
 #define HEIGHT 400
@@ -85,60 +81,6 @@ class App : public SimpleRender {
 			  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttribs);
 			  std::cout << "Maximum number of Vertex Attributes Supported: " << nrAttribs << std::endl;
 		  }
-
-
-		  // TESTING: Texture Loading
-		  {
-			  GLfloat textureCoord[] = {
-				  0.0f, 0.0f,	// Bottom Left
-				  1.0f, 0.0f,	// Bottom Right
-				  1.0f, 1.0f,	// Top    Right
-				  0.0f, 1.0f,	// Top	  Left
-			  };
-
-
-
-			  // Load Image Texture with Correct Orientation
-			  int width, height, channels;
-			  stbi_set_flip_vertically_on_load(true);
-			  unsigned char* data = stbi_load("Textures/615-checkerboard.png", &width, &height, &channels, 0);
-			  std::cout << "Image Loaded: w[" << width << "] h[" << height << "]\n";
-
-			  // Make sure data Loaded 
-			  if (data) {
-				  // Create Texture Buffer
-				  GLuint texture;
-				  glGenTextures(1, &texture);
-				  glActiveTexture(GL_TEXTURE0);				// Set Texture to first Uniform Texture Sampler
-				  glBindTexture(GL_TEXTURE_2D, texture);
-
-				  // Setup Texture Options (Applies to Current Bound Object)
-				  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-				  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-				  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-				  // Store the Data & Generate Mipmaps
-				  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-				  glGenerateMipmap(GL_TEXTURE_2D);
-
-				  // Store the Texture ID to lastest Buffer Data
-				  bufferData.back().textureID = texture;
-			  }
-
-			  else {
-				  std::cerr << "Texture: Image couldn't be loaded!\n";
-			  }
-
-			  stbi_image_free(data);
-
-
-			  // Setup Attribute Data
-			  GLuint aTexCoord = glGetAttribLocation(defaultShader.ID, "aTextCoord");
-			  glVertexAttribPointer(aTexCoord, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-			  glEnableVertexAttribArray(aTexCoord);
-		  }
 	  }
 
 
@@ -148,20 +90,23 @@ class App : public SimpleRender {
 			defaultShader.use();			// Use Default Program
 		  }
 
-		  for (BufferData& bd : bufferData) {
-			  // Bind Texture
-			  glActiveTexture(GL_TEXTURE0);
-			  glBindTexture(GL_TEXTURE_2D, bd.textureID);
 
-			  // Bind Vertex Array
-			  glBindVertexArray(bd.VAO);		// Bind the Vertex Array
-			  glEnableVertexAttribArray(0);		// Bind aPos Attribute to Vertex Array
+		  
+
+		  for (BufferData& bd : bufferData) {
+			  // Enable aPos Attribute
+			  glEnableVertexAttribArray(0);
+
+			  // Bind Vertex Array Object
+			  glBindVertexArray(bd.VAO);
+
+			  // Bind Index Buffer
+			  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
 
 			  // Draw
-			  glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, 0);
-			  glBindVertexArray(0);
+			  glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
 
-			  // Done with Active Attributes
+			  // Disable aPos Attribute
 			  glDisableVertexAttribArray(0);
 		  }
 
@@ -173,13 +118,7 @@ class App : public SimpleRender {
 
 
 
-
 int main() {
-	//SimpleRender render(640, 480, "triangle opengl");
-	//int status = render.run();
-	//if (status != 0)
-	//	std::cerr << "status = " << status << std::endl;
-
 	App app(WIDTH, HEIGHT, "Triangle OpenGL");
 	app.enableLiveShaderUpdate();
 

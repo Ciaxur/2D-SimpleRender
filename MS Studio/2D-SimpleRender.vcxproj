@@ -97,11 +97,15 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\includes\BufferData.cpp" />
     <ClCompile Include="..\src\includes\SimpleRender.cpp" />
+    <ClCompile Include="..\src\includes\Texture.cpp" />
     <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\includes\BufferData.h" />
     <ClInclude Include="..\src\includes\SimpleRender.h" />
+    <ClInclude Include="..\src\includes\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\texture.png" />
