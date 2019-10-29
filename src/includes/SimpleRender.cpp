@@ -73,8 +73,8 @@ GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
     return shaderID;
 }
 
-BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize) {
-    /* 0. Allocate Verticies Buffer Object on GPU */
+BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize, GLuint programID) {
+	/* 0. Allocate Verticies Buffer Object on GPU */
 	GLuint VAO;					// Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
 	GLuint vBuffer;             // Vertex Buffer
     GLuint iBuffer;             // Element BUffer Object that specifies Order of drawing existing verticies
@@ -103,7 +103,7 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
         3,                 // There are Values per Vertex (x,y,z)
         GL_FLOAT,          // Type of Data in the Array
         GL_FALSE,          // Normalize?
-        3 * sizeof(float), // Stride till next Vertex, 3 Value of size Float per Vertix
+        8 * sizeof(float), // Stride till next Vertex
         (void *)0          // Pointer to the Beginning position in the Buffer
     );
 
@@ -114,7 +114,18 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
 	glDisableVertexAttribArray(0);			// Disable aPos Attribute
 
 
-    /* 3. Object is ready to be Drawn */
+	/* 3. Configure RGB Attribute */
+	GLuint aRGB = glGetAttribLocation(programID, "aRGB");
+	glEnableVertexAttribArray(aRGB);
+	glVertexAttribPointer( aRGB, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)) );
+
+	/* 4. Configure Texture Coordinates Attribute */
+	GLuint aTextCoord = glGetAttribLocation(programID, "aTextCoord");
+	glEnableVertexAttribArray(aTextCoord);
+	glVertexAttribPointer( aTextCoord, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)) );
+
+
+    /* 5. Object is ready to be Drawn */
     BufferData data(vBuffer, iBuffer, VAO);               // Create data Reference Object
     data.indiciesElts = iSize / sizeof(indicies[0]); // Store Number of Indicies
 
@@ -166,10 +177,11 @@ void SimpleRender::Preload() {
 
 	// Create Object1
 	GLfloat verticies[] = {
-		-0.4f, -0.2f, 0.0f,     // Bottom-Left
-		-0.2f, -0.2f, 0.0f,     // Bottom-Right
-		-0.4f,  0.2f, 0.0f,     // Top-Left
-		-0.2f,  0.2f, 0.0f      // Top-Right
+		// Positions<vec3>		RGBA<vec3>					// Texture Coordinates<vec2>
+		-0.4f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			0.0f, 0.0f,
+		-0.2f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			1.0f, 0.0f,
+		-0.4f,  0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			0.0f, 1.0f,
+		-0.2f,  0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			1.0f, 1.0f,
 	};
 
 	GLuint indicies[] = {
@@ -179,20 +191,20 @@ void SimpleRender::Preload() {
 
 	// Create and Bind Data to Buffer
 	bufferData.push_back(                                                      //
-		createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies)) //
+		createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID) //
 	);
 
 
 	// Create Object2
-    GLfloat verticies2[] = {
-            0.0f,  0.3f, 0.0f,     // Bottom-Left
-            0.4f,  0.3f, 0.0f,     // Bottom-Right
-            0.0f, -0.3f, 0.0f,     // Top-Left
-            0.4f, -0.3f, 0.0f      // Top-Right
-    };
-    bufferData.push_back(                                                        //
-        createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies)) //
-    );
+    //GLfloat verticies2[] = {
+    //        0.0f,  0.3f, 0.0f,     // Bottom-Left
+    //        0.4f,  0.3f, 0.0f,     // Bottom-Right
+    //        0.0f, -0.3f, 0.0f,     // Top-Left
+    //        0.4f, -0.3f, 0.0f      // Top-Right
+    //};
+    //bufferData.push_back(                                                        //
+    //    createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies)) //
+    //);
 
 
 	// DEBUG: Output Data Created

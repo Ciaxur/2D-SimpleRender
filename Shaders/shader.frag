@@ -20,6 +20,8 @@ uniform sampler2D textureSampler;
 
 
 void main() {
-//    FragColor = vertexColor;
-    FragColor = texture(textureSampler, textureCoord);
+//	FragColor = texture(textureSampler, textureCoord) * vertexColor;
+
+	// Use RGBA Color
+    FragColor = vertexColor;
 }

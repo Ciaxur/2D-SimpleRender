@@ -16,4 +16,8 @@ BufferData::BufferData(): verticiesBuffer(0), indiciesBuffer(0), VAO(0), texture
 BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao)
 	: verticiesBuffer(_vertBuffer), indiciesBuffer(_indBuffer), VAO(_vao), textureID(0) {}
 
-BufferData::~BufferData() {}
+BufferData::~BufferData() {
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &verticiesBuffer);
+	glDeleteBuffers(1, &indiciesBuffer);
+}
