@@ -179,9 +179,9 @@ void SimpleRender::Preload() {
 	GLfloat verticies[] = {
 		// Positions<vec3>		RGBA<vec3>					// Texture Coordinates<vec2>
 		-0.4f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			0.0f, 0.0f,
-		-0.2f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			1.0f, 0.0f,
-		-0.4f,  0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			0.0f, 1.0f,
-		-0.2f,  0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			1.0f, 1.0f,
+		-0.2f, -0.2f, 0.0f,		0.0f, 1.0f, 0.0f,			1.0f, 0.0f,
+		-0.4f,  0.2f, 0.0f,		0.0f, 0.0f, 1.0f,			0.0f, 1.0f,
+		-0.2f,  0.2f, 0.0f,		1.0f, 1.0f, 1.0f,			1.0f, 1.0f,
 	};
 
 	GLuint indicies[] = {
@@ -241,6 +241,11 @@ SimpleRender::SimpleRender(unsigned int  w, unsigned int  h, const char *title) 
 }
 
 SimpleRender::~SimpleRender() {
+    /* Free Up Buffer Data */
+    for(BufferData &bf : bufferData) {
+        BufferData::freeBufferData(&bf);
+    }
+    
     /* Destroy Resources */
     printf("\nExiting, cleaning up first...\n");
     glfwDestroyWindow(window);

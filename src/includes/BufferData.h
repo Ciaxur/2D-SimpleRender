@@ -36,6 +36,6 @@ class BufferData {
 	 */
 	BufferData(GLuint&, GLuint&, GLuint&);
 
-	/* Destructor that frees up used Memory */
-	~BufferData();
+	/* Method that frees up used Memory */
+	static void freeBufferData(BufferData*);	
 };

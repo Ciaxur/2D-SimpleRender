@@ -33,10 +33,10 @@ class SimpleRender {
 
 		void use();										// Uses Current Program (If any)
 		void compile(const char*, const char*);			// Compiles Given Shader Files (Vertex, Fragment)
-	};
+	} s; // TODO: Fix Later
 
   protected: // Shared Variables
-	 Shader defaultShader;
+     Shader defaultShader;
      std::vector<BufferData> bufferData; // Store References the Buffer Data
 	 
 
