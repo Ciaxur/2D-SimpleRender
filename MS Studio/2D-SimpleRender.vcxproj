@@ -43,14 +43,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\..\dependencies\glfw\include;$(SolutionDir)\..\dependencies\glew\include;$(SolutionDir)\..\dependencies\stb_image\;$(SolutionDir)\..\dependencies\glm\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\dependencies\glfw\include;$(SolutionDir)\..\dependencies\glew\include;$(SolutionDir)\..\dependencies\;$(IncludePath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <SourcePath>$(SourcePath)</SourcePath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\..\dependencies\glfw\include;$(SolutionDir)\..\dependencies\glew\include;$(SolutionDir)\..\dependencies\stb_image\;$(SolutionDir)\..\dependencies\glm\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\..\dependencies\glfw\include;$(SolutionDir)\..\dependencies\glew\include;$(SolutionDir)\..\dependencies\;$(IncludePath)</IncludePath>
     <ReferencePath>$(ReferencePath)</ReferencePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <SourcePath>$(SourcePath)</SourcePath>
@@ -108,6 +108,7 @@
     <ClInclude Include="..\src\includes\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Textures\615-checkerboard.png" />
     <Image Include="Textures\texture.png" />
   </ItemGroup>
   <ItemGroup>
