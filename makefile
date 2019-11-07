@@ -1,8 +1,14 @@
+NAME = app
+CC = g++
+FLAGS = -std=c++17 -lglfw -lGLEW -lGL
+INCLUDES = -I ./dependencies -I ./dependencies/stb_image 
+
+
 build:
-	g++ -I ./dependencies/stb_image ./src/*.cpp ./src/includes/*.cpp -std=c++17 -lglfw -lGLEW -lGL -o app
+	$(CC) $(INCLUDES) ./src/*.cpp ./src/includes/*.cpp $(FLAGS) -o $(NAME)
 
 build-debug:
-	g++ -I ./dependencies/stb_image ./src/*.cpp ./src/includes/*.cpp -std=c++17 -lglfw -lGLEW -lGL -g -o app
+	$(CC) $(INCLUDES) ./src/*.cpp ./src/includes/*.cpp $(FLAGS) -o $(NAME) -g
 
 clean:
-	rm ./app
+	rm ./$(NAME)
