@@ -132,6 +132,9 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
     return data;
 }
 
+const double SimpleRender::getFPS() {
+	return FPS;
+}
 
 
 /**
@@ -150,6 +153,10 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
 void SimpleRender::Draw() {
     // Draw the Object
 	defaultShader.use();
+
+	// Output FPS to Window Title
+	sprintf(buffer, "%s [%.2f FPS]", title, getFPS());
+	glfwSetWindowTitle(window, buffer);
 
 
 	// Render all Buffer Data
@@ -196,15 +203,16 @@ void SimpleRender::Preload() {
 
 
 	// Create Object2
-    //GLfloat verticies2[] = {
-    //        0.0f,  0.3f, 0.0f,     // Bottom-Left
-    //        0.4f,  0.3f, 0.0f,     // Bottom-Right
-    //        0.0f, -0.3f, 0.0f,     // Top-Left
-    //        0.4f, -0.3f, 0.0f      // Top-Right
-    //};
-    //bufferData.push_back(                                                        //
-    //    createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies)) //
-    //);
+    GLfloat verticies2[] = {
+		// Positions<vec3>		RGBA<vec3>					// Texture Coordinates<vec2>
+        0.0f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f,			0.0f, 0.0f,		// Bottom-Left
+        0.4f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f,			1.0f, 0.0f,		// Bottom-Right
+		0.0f, -0.3f, 0.0f,     1.0f, 1.0f, 1.0f,			0.0f, 1.0f,		// Top-Left
+		0.4f, -0.3f, 0.0f,     0.5f, 0.0f, 0.5f,			1.0f, 1.0f,		// Top-Right
+    };
+    bufferData.push_back(                                                        //
+        createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader.ID) //
+    );
 
 
 	// DEBUG: Output Data Created
@@ -241,13 +249,15 @@ SimpleRender::SimpleRender(unsigned int  w, unsigned int  h, const char *title) 
 }
 
 SimpleRender::~SimpleRender() {
+	printf("\nExiting, cleaning up first...\n");
+
+
     /* Free Up Buffer Data */
     for(BufferData &bf : bufferData) {
         BufferData::freeBufferData(&bf);
     }
     
     /* Destroy Resources */
-    printf("\nExiting, cleaning up first...\n");
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -302,12 +312,26 @@ int SimpleRender::run() {
     }
 
 
+	/* Keep track of FPS */
+	double lastTime = glfwGetTime();
+	int frameCount = 0;
+
     /* Run Pre-Start Function */
     Preload();
 
     /* Keep Window open until 'Q' key is pressed */
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     do {
+		// Measure the Speed
+		double currentTime = glfwGetTime();
+		frameCount++;
+		if (currentTime - lastTime >= 1.0) {
+			FPS = frameCount;
+			frameCount = 0;
+			lastTime += 1.0;
+		}
+
+
         // Clear the Screen
         glClear(GL_COLOR_BUFFER_BIT);
 

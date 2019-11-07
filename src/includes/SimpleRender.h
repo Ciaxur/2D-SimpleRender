@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
+#include <stdio.h>
 
 // OpenGL Libraries
 #include <GL/glew.h>
@@ -20,8 +21,11 @@ class SimpleRender {
   private: // Private Variables | GL Window Data
     GLFWwindow *window;
     const char *title = "GLFW Window";
+	char buffer[256];				 // Used for Temporary Character Storage (Window Title)
     const unsigned int WIDTH = 400;
     const unsigned int HEIGHT = 400;
+	double FPS;						 // Current Calculated FPS Value
+
 
   protected: // Structure for Better Shader Handling
 	static struct Shader {
@@ -82,6 +86,11 @@ class SimpleRender {
      */
     static BufferData createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize, GLuint programID);
 
+	/**
+	 * Returns the Calculated Frames Per Second from Draw Loop
+	 *	@returns FPS Value
+	 */
+	const double getFPS();
 
 
   private: // Helper Functions
