@@ -1,6 +1,9 @@
 // Engine Libraries
 #include "includes/SimpleRender.h"
 
+// Core Libraries
+#include <sys/stat.h>
+
 // Helper Libraries
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

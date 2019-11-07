@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 /*
  * Fragment Shader is responsible for the color
  *  output for each pixel

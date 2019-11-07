@@ -1,5 +1,8 @@
 #pragma once
 
+// Library
+#include "Texture.h"
+
 // Core libraries
 #include <GL/glew.h>
 #include "Texture.h"
