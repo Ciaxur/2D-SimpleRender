@@ -2,6 +2,7 @@
 
 // Core libraries
 #include <GL/glew.h>
+#include "Texture.h"
 
 /**
  * Stores Data Objects of the There
@@ -11,17 +12,18 @@
  *      - Vertex Buffer
  *      - Index Buffer
  *      - Number of Elements Indicies
+ *		- Texture Object
  *
  */
 class BufferData {
   private:
 
   public:	// Public Variables
-	  GLuint VAO;					// Vertex Array Object
-	  GLuint verticiesBuffer;		// Vertex Buffer
-	  GLuint indiciesBuffer;		// Index Buffer
-	  GLuint textureID;				// Texture Index
-	  size_t indiciesElts = 0;		// Number of Indicies
+	  GLuint	VAO;					// Vertex Array Object
+	  GLuint	verticiesBuffer;		// Vertex Buffer
+	  GLuint	indiciesBuffer;			// Index Buffer
+	  Texture	*texture;				// Texture Object
+	  size_t	indiciesElts = 0;		// Number of Indicies
 
   public:
 	/* Default Constructor: Initialize everything to 0 */

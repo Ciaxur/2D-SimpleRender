@@ -19,13 +19,18 @@
 
 class SimpleRender {
   private: // Private Variables | GL Window Data
-    GLFWwindow *window;
-    const char *title = "GLFW Window";
-	char buffer[256];				 // Used for Temporary Character Storage (Window Title)
     const unsigned int WIDTH = 400;
     const unsigned int HEIGHT = 400;
-	double FPS;						 // Current Calculated FPS Value
+	double FPS;									// Current Calculated FPS Value
+	bool isDefaultEventListeners = true;		// State of Setting Default Callbacks
 
+
+  protected: // Shared Window Data
+	GLFWwindow* window;
+	const char* title = "GLFW Window";
+	char titleBuffer[256];			// Used for Temporary Character Storage (Window Title)
+
+	
 
   protected: // Structure for Better Shader Handling
 	static struct Shader {
@@ -91,6 +96,13 @@ class SimpleRender {
 	 *	@returns FPS Value
 	 */
 	const double getFPS();
+
+	/**
+	 * Disables Setting Default Event Callbacks to GLFW
+	 *	- Must be called Prior to the "run" method
+	 */
+	void disableEventListeners();
+
 
 
   private: // Helper Functions

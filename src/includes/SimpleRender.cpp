@@ -103,7 +103,7 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
         3,                 // There are Values per Vertex (x,y,z)
         GL_FLOAT,          // Type of Data in the Array
         GL_FALSE,          // Normalize?
-        8 * sizeof(float), // Stride till next Vertex
+        9 * sizeof(float), // Stride till next Vertex
         (void *)0          // Pointer to the Beginning position in the Buffer
     );
 
@@ -115,14 +115,14 @@ BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *
 
 
 	/* 3. Configure RGB Attribute */
-	GLuint aRGB = glGetAttribLocation(programID, "aRGB");
-	glEnableVertexAttribArray(aRGB);
-	glVertexAttribPointer( aRGB, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)) );
+	GLuint aRGBA = glGetAttribLocation(programID, "aRGBA");
+	glEnableVertexAttribArray(aRGBA);
+	glVertexAttribPointer( aRGBA, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)) );
 
 	/* 4. Configure Texture Coordinates Attribute */
 	GLuint aTextCoord = glGetAttribLocation(programID, "aTextCoord");
 	glEnableVertexAttribArray(aTextCoord);
-	glVertexAttribPointer( aTextCoord, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)) );
+	glVertexAttribPointer( aTextCoord, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7 * sizeof(float)) );
 
 
     /* 5. Object is ready to be Drawn */
@@ -155,8 +155,8 @@ void SimpleRender::Draw() {
 	defaultShader.use();
 
 	// Output FPS to Window Title
-	sprintf(buffer, "%s [%.2f FPS]", title, getFPS());
-	glfwSetWindowTitle(window, buffer);
+	sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
+	glfwSetWindowTitle(window, titleBuffer);
 
 
 	// Render all Buffer Data
@@ -184,11 +184,11 @@ void SimpleRender::Preload() {
 
 	// Create Object1
 	GLfloat verticies[] = {
-		// Positions<vec3>		RGBA<vec3>					// Texture Coordinates<vec2>
-		-0.4f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f,			0.0f, 0.0f,
-		-0.2f, -0.2f, 0.0f,		0.0f, 1.0f, 0.0f,			1.0f, 0.0f,
-		-0.4f,  0.2f, 0.0f,		0.0f, 0.0f, 1.0f,			0.0f, 1.0f,
-		-0.2f,  0.2f, 0.0f,		1.0f, 1.0f, 1.0f,			1.0f, 1.0f,
+		// Positions<vec3>		RGBA<vec4>					// Texture Coordinates<vec2>
+		-0.4f, -0.2f, 0.0f,		1.0f, 0.0f, 0.0f, 1.0f,		0.0f, 0.0f,
+		-0.2f, -0.2f, 0.0f,		0.0f, 1.0f, 0.0f, 1.0f,		1.0f, 0.0f,
+		-0.4f,  0.2f, 0.0f,		0.0f, 0.0f, 1.0f, 1.0f,		0.0f, 1.0f,
+		-0.2f,  0.2f, 0.0f,		1.0f, 1.0f, 1.0f, 1.0f,		1.0f, 1.0f,
 	};
 
 	GLuint indicies[] = {
@@ -204,11 +204,11 @@ void SimpleRender::Preload() {
 
 	// Create Object2
     GLfloat verticies2[] = {
-		// Positions<vec3>		RGBA<vec3>					// Texture Coordinates<vec2>
-        0.0f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f,			0.0f, 0.0f,		// Bottom-Left
-        0.4f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f,			1.0f, 0.0f,		// Bottom-Right
-		0.0f, -0.3f, 0.0f,     1.0f, 1.0f, 1.0f,			0.0f, 1.0f,		// Top-Left
-		0.4f, -0.3f, 0.0f,     0.5f, 0.0f, 0.5f,			1.0f, 1.0f,		// Top-Right
+		// Positions<vec3>		RGB<vec4>					// Texture Coordinates<vec2>
+        0.0f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,		0.0f, 0.0f,		// Bottom-Left
+        0.4f,  0.3f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,		1.0f, 0.0f,		// Bottom-Right
+		0.0f, -0.3f, 0.0f,     1.0f, 1.0f, 1.0f, 1.0f,		0.0f, 1.0f,		// Top-Left
+		0.4f, -0.3f, 0.0f,     0.5f, 0.0f, 0.5f, 1.0f,		1.0f, 1.0f,		// Top-Right
     };
     bufferData.push_back(                                                        //
         createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader.ID) //
@@ -222,7 +222,7 @@ void SimpleRender::Preload() {
 		std::cout << "\tIndexBuffer: " << bd.indiciesBuffer << '\n';
 		std::cout << "\tIndexElements: " << bd.indiciesElts << '\n';
 		std::cout << "\tVertexBuffer: " << bd.verticiesBuffer << '\n';
-		std::cout << "\tTextureID: " << bd.textureID << "\n\n";
+		std::cout << "\tTextureID: " << bd.texture->textureID << "\n\n";
 	}
 }
 
@@ -293,12 +293,14 @@ int SimpleRender::run() {
     glfwMakeContextCurrent(window); // Initialize GLEW
 
 
-    /* Setup Callbacks */
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetMouseButtonCallback(window, mouseBtn_callback);
-    glfwSetCursorPosCallback(window, cursorPos_callback);
-    glfwSetScrollCallback(window, mouseScroll_callback);
-    glfwSetErrorCallback(error_callback);
+    /* Setup Default Callbacks */
+	if (isDefaultEventListeners) {
+		glfwSetKeyCallback(window, key_callback);
+		glfwSetMouseButtonCallback(window, mouseBtn_callback);
+		glfwSetCursorPosCallback(window, cursorPos_callback);
+		glfwSetScrollCallback(window, mouseScroll_callback);
+		glfwSetErrorCallback(error_callback);
+	}
 
     /* Setup GLFW Properties */
     glfwSwapInterval(1); // Default is 0, this is to prevent Tearing
@@ -351,6 +353,10 @@ int SimpleRender::run() {
 
     // No Issues
     return 0;
+}
+
+void SimpleRender::disableEventListeners() {
+	isDefaultEventListeners = false;
 }
 
 
