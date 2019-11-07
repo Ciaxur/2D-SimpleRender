@@ -11,6 +11,8 @@
 class Texture {
   private:	// Texture Data
 	  int width, height, channels;
+	
+  public:
 	  GLuint textureID;
 
   public:

@@ -1,5 +1,8 @@
 #pragma once
 
+// Library
+#include "Texture.h"
+
 // Core libraries
 #include <GL/glew.h>
 
@@ -20,7 +23,7 @@ class BufferData {
 	  GLuint VAO;					// Vertex Array Object
 	  GLuint verticiesBuffer;		// Vertex Buffer
 	  GLuint indiciesBuffer;		// Index Buffer
-	  GLuint textureID;				// Texture Index
+	  Texture *texture;				// Texture Object
 	  size_t indiciesElts = 0;		// Number of Indicies
 
   public:
