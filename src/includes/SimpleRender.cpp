@@ -185,6 +185,8 @@ const double SimpleRender::getFPS() {
  *  - Process Input Function
  *      - Handles User Input from window
  *      - Function is Called Prior to Draw Loop
+ *  - Fixed Update
+ *      - Physics / Calculation Fixed Step Update
  ***********************************************************
  */
 
@@ -264,6 +266,7 @@ void SimpleRender::Preload() {
 	}
 }
 
+void SimpleRender::fixedUpdate(double deltaTime) {}
 
 
 
@@ -349,7 +352,7 @@ int SimpleRender::run() {
 	glfwSetErrorCallback(error_callback);
 
 
-	/* Keep track of FPS */
+	/* Keep track of FPS & Fixed Upate */
 	double lastTime = glfwGetTime();
 	int frameCount = 0;
 
@@ -361,7 +364,7 @@ int SimpleRender::run() {
     /* Keep Window open until 'Q' key is pressed */
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     do {
-		// Measure the Speed
+		// Measure the Speed (FPS)
 		double currentTime = glfwGetTime();
 		frameCount++;
 		if (currentTime - lastTime >= 1.0) {

@@ -116,6 +116,12 @@ class SimpleRender {
      */
 	virtual void Preload();
 
+	/* 
+	 * Fixed Interval Update 
+	 * Used for Physics Sync
+	 *  @param deltaTime - Timestep
+	 */
+	virtual void fixedUpdate(double deltaTime);
 
 
 

@@ -62,6 +62,9 @@ class App : public SimpleRender {
 				  transY += offset;
 			  else if (key == GLFW_KEY_DOWN)
 				  transY -= offset;
+
+			  else if (key == GLFW_KEY_Q)
+				  glfwSetWindowShouldClose(window, GLFW_TRUE);
 		  }
 
 
@@ -141,6 +144,9 @@ class App : public SimpleRender {
 		  std::cout << "Maximum number of Vertex Attributes Supported: " << nrAttribs << std::endl;
 	  }
 
+	  void fixedUpdate(double dt) override {
+		  printf("Delta Time[%.2f]\n", dt);
+	  }
 
 	  /* Main Draw location of Application */
 	  void Draw() {
