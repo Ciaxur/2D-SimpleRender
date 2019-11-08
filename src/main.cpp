@@ -18,6 +18,8 @@ class App : public SimpleRender {
   private:
 	  time_t FshaderLastMod, VshaderLastMod;
 	  bool shaderUpdateActive = false;
+	  float transX = 0.0f;
+	  float transY = 0.0f;
 
 
 	  /* Obtains last updated time of given file */
@@ -46,11 +48,34 @@ class App : public SimpleRender {
 		  }
 	  }
 
+	  void onKey(int key, int scancode, int action, int mods) {
+		  float offset = 0.01f;
+
+		  // Adjust Transformation
+		  if (action == GLFW_REPEAT || action == GLFW_PRESS) {
+			  if (key == GLFW_KEY_LEFT)
+				  transX -= offset;
+			  else if (key == GLFW_KEY_RIGHT)
+				  transX += offset;
+
+			  else if (key == GLFW_KEY_UP)
+				  transY += offset;
+			  else if (key == GLFW_KEY_DOWN)
+				  transY -= offset;
+		  }
+
+
+		  // Log Data
+		  printf("TransX[%.2f] \t TransY[%.2f]\n", transX, transY);
+	  }
+
+
   public:
 	  App(unsigned int  width, unsigned int  height, const char* title)
 		  : SimpleRender(width, height, title) {
 		  FshaderLastMod = VshaderLastMod = 0;
 	  }
+
 
 	  void enableLiveShaderUpdate() { shaderUpdateActive = true; }
 	  void disableLiveShaderUpdate() { shaderUpdateActive = false; }
@@ -110,11 +135,6 @@ class App : public SimpleRender {
 		  bufferData.back().texture = new Texture("./Textures/texture.png");
 		  
 
-
-		  // Override the Event Callbacks
-		  //disableEventListeners();
-
-
 		  // Display some Internal Info
 		  int nrAttribs;
 		  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttribs);
@@ -128,19 +148,17 @@ class App : public SimpleRender {
 			defaultShader.use();			// Use Default Program
 		  }
 
-
 		  // Output FPS to Window Title
 		  sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
 		  glfwSetWindowTitle(window, titleBuffer);
 
-
+		  // Transform Based on Input
 		  glm::mat4 trans(1.0f);
-		  float newX = sin(glfwGetTime());
-		  trans = glm::translate(trans, glm::vec3(newX, 0.0f, 0.0f));
-
+		  trans = glm::translate(trans, glm::vec3(transX, transY, 0.0f));
 
 		  GLuint utransfrom = glGetUniformLocation(defaultShader.ID, "transform");
 		  glUniformMatrix4fv(utransfrom, 1, GL_FALSE, glm::value_ptr(trans));
+
 
 
 		  // Draw From the Buffer
@@ -176,6 +194,7 @@ class App : public SimpleRender {
 		  if (shaderUpdateActive) liveGLSLUpdateShaders();
 	  }
 };
+
 
 
 

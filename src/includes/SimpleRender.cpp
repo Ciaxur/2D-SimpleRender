@@ -5,42 +5,80 @@
  * Private Static Methods and Callbacks
  *  - Key Presses, Mouse Button, Cursor Movements, and
  *      Mouse Scrolling Callbacks
- *
- *  - Initialization of Backend Functionallity
- *      - Shaders
- *      - Buffers
  ***********************************************************
  */
 
 void SimpleRender::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    // Output Key Pressed
-    printf("KEY: Key[%d], ScanCode[%d], Action[%d], Mods[%d]\n", key, scancode, action, mods);
+	// Obtain and Cast Object Reference
+	void* r = glfwGetWindowUserPointer(window);
+	if (r != NULL) {
+		SimpleRender* obj = static_cast<SimpleRender*>(r);
+		obj->onKey(key, scancode, action, mods);			// Call Overrideable Function
+	}
+}
+void SimpleRender::onKey(int key, int scancode, int action, int mods) {
+	// Output Key Pressed
+	printf("KEY: Key[%d], ScanCode[%d], Action[%d], Mods[%d]\n", key, scancode, action, mods);
 
-    // Close window on 'Q' Press
-    if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
+	// Close window on 'Q' Press
+	if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, GLFW_TRUE);
+	}
 }
 
 void SimpleRender::mouseBtn_callback(GLFWwindow *window, int button, int action, int mods) {
-    // Output Key Pressed
-    printf("MOUSE: Button[%d], Action[%d], Mods[%d]\n", button, action, mods);
+	// Obtain and Cast Object Reference
+	void* r = glfwGetWindowUserPointer(window);
+	if (r != NULL) {
+		SimpleRender* obj = static_cast<SimpleRender*>(r);
+		obj->onMouseClick(button, action, mods);			// Call Overrideable Function
+	}
+}
+void SimpleRender::onMouseClick(int button, int action, int mods) {
+	// Output Key Pressed
+	printf("MOUSE: Button[%d], Action[%d], Mods[%d]\n", button, action, mods);
 }
 
 void SimpleRender::cursorPos_callback(GLFWwindow *window, double xPos, double yPos) {
-    // Output Mouse Cursor Position
-    printf("CURSOR: X[%.2f], Y[%.2f]\n", xPos, yPos);
+	// Obtain and Cast Object Reference
+	void* r = glfwGetWindowUserPointer(window);
+	if (r != NULL) {
+		SimpleRender* obj = static_cast<SimpleRender*>(r);
+		obj->onMouse(xPos, yPos);			// Call Overrideable Function
+	}
+}
+void SimpleRender::onMouse(double xPos, double yPos) {
+	// Output Mouse Cursor Position
+	printf("CURSOR: X[%.2f], Y[%.2f]\n", xPos, yPos);
 }
 
 void SimpleRender::mouseScroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
-    // Output Mouse Cursor Position
-    printf("SCROLL: X-off[%.2f], Y-off[%.2f]\n", xOffset, yOffset);
+	// Obtain and Cast Object Reference
+	void* r = glfwGetWindowUserPointer(window);
+	if (r != NULL) {
+		SimpleRender* obj = static_cast<SimpleRender*>(r);
+		obj->onMouseScroll(xOffset, yOffset);			// Call Overrideable Function
+	}
+}
+void SimpleRender::onMouseScroll(double xOffset, double yOffset) {
+	// Output Mouse Cursor Position
+	printf("SCROLL: X-off[%.2f], Y-off[%.2f]\n", xOffset, yOffset);
 }
 
 void SimpleRender::error_callback(int error, const char *description) {
     // Output any Errors
     fprintf(stderr, "Error[%d]: %s\n", error, description);
 }
+
+
+/**
+ ***********************************************************
+ * Private Static Methods Backend
+ * Initialization of Backend Functionallity
+ *		-Shaders
+ *		-Buffers
+ ***********************************************************
+ */
 
 GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
     // Load in Source Code
@@ -226,9 +264,6 @@ void SimpleRender::Preload() {
 	}
 }
 
-void SimpleRender::processInput(GLFWwindow *window) {
-    // Handle Key Input
-}
 
 
 
@@ -293,17 +328,9 @@ int SimpleRender::run() {
     glfwMakeContextCurrent(window); // Initialize GLEW
 
 
-    /* Setup Default Callbacks */
-	if (isDefaultEventListeners) {
-		glfwSetKeyCallback(window, key_callback);
-		glfwSetMouseButtonCallback(window, mouseBtn_callback);
-		glfwSetCursorPosCallback(window, cursorPos_callback);
-		glfwSetScrollCallback(window, mouseScroll_callback);
-		glfwSetErrorCallback(error_callback);
-	}
-
     /* Setup GLFW Properties */
     glfwSwapInterval(1); // Default is 0, this is to prevent Tearing
+	glEnable(GL_DEPTH_TEST);
 
 
     /* Initialize GLEW */
@@ -313,6 +340,14 @@ int SimpleRender::run() {
         return -1;
     }
 
+	/* Setup Input Callbacks */
+	glfwSetWindowUserPointer(window, this);			// Keep track of Current Object
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetMouseButtonCallback(window, mouseBtn_callback);
+	glfwSetCursorPosCallback(window, cursorPos_callback);
+	glfwSetScrollCallback(window, mouseScroll_callback);
+	glfwSetErrorCallback(error_callback);
+
 
 	/* Keep track of FPS */
 	double lastTime = glfwGetTime();
@@ -320,6 +355,8 @@ int SimpleRender::run() {
 
     /* Run Pre-Start Function */
     Preload();
+
+	
 
     /* Keep Window open until 'Q' key is pressed */
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -335,10 +372,7 @@ int SimpleRender::run() {
 
 
         // Clear the Screen
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // Process User Input
-        processInput(window);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw here...
         Draw();
@@ -353,10 +387,6 @@ int SimpleRender::run() {
 
     // No Issues
     return 0;
-}
-
-void SimpleRender::disableEventListeners() {
-	isDefaultEventListeners = false;
 }
 
 

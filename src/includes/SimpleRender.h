@@ -22,7 +22,6 @@ class SimpleRender {
     const unsigned int WIDTH = 400;
     const unsigned int HEIGHT = 400;
 	double FPS;									// Current Calculated FPS Value
-	bool isDefaultEventListeners = true;		// State of Setting Default Callbacks
 
 
   protected: // Shared Window Data
@@ -52,19 +51,26 @@ class SimpleRender {
 
   private: // Private Methods (Static - Callbacks)
     /* Called when Key Pressed */
-    static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
     /* Mouse Click Callback */
-    static void mouseBtn_callback(GLFWwindow *window, int button, int action, int mods);
+	static void mouseBtn_callback(GLFWwindow* window, int button, int action, int mods);
 
     /* Mouse Cursor Position Relative to Window Callback */
-    static void cursorPos_callback(GLFWwindow *window, double xPos, double yPos);
+	static void cursorPos_callback(GLFWwindow* window, double xPos, double yPos);
 
     /* Mouse Cursor Scroll Offset Callback */
-    static void mouseScroll_callback(GLFWwindow *window, double xOffset, double yOffset);
+	static void mouseScroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 
     /* GLFW Error Callback */
     static void error_callback(int error, const char *description);
+
+
+  protected: // Shared Overrideable Callbacks
+	virtual void onKey(int key, int scancode, int action, int mods);
+	virtual void onMouseClick(int button, int action, int mods);
+	virtual void onMouseScroll(double xOffset, double yOffset);
+	virtual void onMouse(double xPos, double yPos);
 
 
   protected: // Shared Methods
@@ -97,12 +103,6 @@ class SimpleRender {
 	 */
 	const double getFPS();
 
-	/**
-	 * Disables Setting Default Event Callbacks to GLFW
-	 *	- Must be called Prior to the "run" method
-	 */
-	void disableEventListeners();
-
 
 
   private: // Helper Functions
@@ -116,11 +116,6 @@ class SimpleRender {
      */
 	virtual void Preload();
 
-    /**
-     * Handles User Input from given Window
-     * @param window - The GLFW Window Reference
-     */
-    void processInput(GLFWwindow *window);
 
 
 
