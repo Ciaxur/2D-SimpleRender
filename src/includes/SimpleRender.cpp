@@ -44,7 +44,13 @@ void SimpleRender::cursorPos_callback(GLFWwindow *window, double xPos, double yP
 	void* r = glfwGetWindowUserPointer(window);
 	if (r != NULL) {
 		SimpleRender* obj = static_cast<SimpleRender*>(r);
-		obj->onMouse(xPos, yPos);			// Call Overrideable Function
+
+		// Update Mouse Data
+		obj->mousePos.x = xPos;
+        obj->mousePos.y = yPos;
+
+		// Call Overrideable Function
+		obj->onMouse(xPos, yPos);
 	}
 }
 void SimpleRender::onMouse(double xPos, double yPos) {
@@ -359,7 +365,14 @@ int SimpleRender::run() {
     /* Run Pre-Start Function */
     Preload();
 
-	
+	/* Get Uniform Locations */
+    GLint u_time = glGetUniformLocation(this->defaultShader.ID, "u_time");
+    GLint u_mouse = glGetUniformLocation(this->defaultShader.ID, "u_mouse");
+    GLint u_res = glGetUniformLocation(this->defaultShader.ID, "u_res");
+
+	/* Set Uniform Data */
+    glm::vec2 v_res(this->WIDTH, this->HEIGHT);		// Set Resolution Vector
+
 
     /* Keep Window open until 'Q' key is pressed */
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
@@ -372,6 +385,13 @@ int SimpleRender::run() {
 			frameCount = 0;
 			lastTime += 1.0;
 		}
+
+		// Update Uniform Data
+        glUniform1f(u_time, currentTime);
+    	glUniform2fv(u_res, 1, glm::value_ptr(v_res));  // A Single vec2 Float
+    	glUniform2fv(u_mouse, 1, glm::value_ptr(mousePos));
+
+
 
 
         // Clear the Screen
