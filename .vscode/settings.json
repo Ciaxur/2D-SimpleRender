@@ -52,7 +52,7 @@
     },
     "C_Cpp.default.intelliSenseMode": "gcc-x64",
     "C_Cpp.intelliSenseCacheSize": 12,
-    "C_Cpp.clang_format_style": "{BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 120, MaxEmptyLinesToKeep: 3, UseTab: Never, TabWidth: 4, BreakBeforeBraces: Allman, AllowShortIfStatementsOnASingleLine: false, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4 }",
+    "C_Cpp.clang_format_style": "{FixNamespaceComments: false, NamespaceIndentation: All, AccessModifierOffset: -2, BasedOnStyle: Google, IndentWidth: 4, ColumnLimit: 120, MaxEmptyLinesToKeep: 3, UseTab: Never, TabWidth: 4, AllowShortIfStatementsOnASingleLine: true, IndentCaseLabels: false, ColumnLimit: 0}",
     "C_Cpp.default.includePath": ["./dependencies/", "./dependencies/glfw/include", "./dependencies/glew/include", "./src/"],
     "editor.formatOnSave": false,
     "editor.formatOnType": true
