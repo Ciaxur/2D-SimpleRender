@@ -6,7 +6,10 @@ Simple and easy to use 2D OpenGL Engine.
 All that is required is **`GLFW3`** and **`GLEW`** libraries to be installed using your packages manager.
 Once that is taken care of, building the required files by using the **`make`** command.
 - **make build** : Compiles the Source Files and outputs binary as *app*
+- **build-prod**: Compiles Source Files with Optimization
 - **make build-debug**: Compiles the Source Files for the use of debugging
+- **make build-fast**: Compiles the Source Files using Statically Compiled files
+- **make build-static**: Statically Compiles the Source Files with Optimization
 - **make clean**: Cleans up all build files
 
 

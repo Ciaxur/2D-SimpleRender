@@ -19,7 +19,8 @@ build-fast:
 	$(CC) $(INCLUDES) ./build/*.o ./src/*.cpp $(FLAGS) -o $(NAME)
 
 build-static:
-	$(CC) $(INCLUDES) $(MISC) ./src/includes/*.cpp $(FLAGS) -c && mkdir build && mv *.o ./build
+	mkdir build; $(CC) $(INCLUDES) $(MISC) ./src/includes/*.cpp $(FLAGS) -c -O3 && mv *.o ./build
 
 clean:
 	rm ./$(NAME)
+	rm ./build/*
