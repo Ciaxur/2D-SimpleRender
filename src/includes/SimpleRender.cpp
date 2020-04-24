@@ -412,6 +412,9 @@ int SimpleRender::run() {
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
     ImGui::StyleColorsDark();
+
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");  // GLSL 3.2+
 
@@ -449,9 +452,7 @@ int SimpleRender::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Setup & Render ImGui
-        drawImGui();
-        ImGui::Render();
+        
 
         // Update Uniform Data
         glUniform1f(u_time, currentTime);
@@ -462,9 +463,15 @@ int SimpleRender::run() {
         // Clear the Screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Setup ImGui
+        drawImGui();
+    
         // Draw here...
         Draw();
 
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Swap Buffers
         glfwSwapBuffers(window);

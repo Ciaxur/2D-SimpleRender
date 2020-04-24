@@ -1,6 +1,6 @@
 NAME = app
 CC = g++
-FLAGS = -std=c++17 -lglfw -lGLEW -lGL -Wall
+FLAGS = -std=c++17 -lglfw -lGLEW -lGL -Wall 
 INCLUDES = -I ./dependencies -I ./dependencies/stb_image -I ./dependencies/spdlog -I /dependencies/imgui
 MISC = ./dependencies/imgui/*.cpp ./dependencies/imgui/examples/*.cpp
 
