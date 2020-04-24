@@ -84,6 +84,7 @@ void SimpleRender::error_callback(int error, const char *description) {
  *		-Shaders
  *		-Buffers
  ***********************************************************
+ * Error: Returns 0 if Shader Failed
  */
 
 GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
@@ -307,7 +308,7 @@ void SimpleRender::Preload() {
 
 void SimpleRender::fixedUpdate(double deltaTime) {}
 
-void SimpleRender::drawImGui() {    // BUG: ImGui Not Showin :(
+void SimpleRender::drawImGui() {    // BUG: ImGui Not Showing :(
     ImGui::ShowDemoWindow();
     // ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
@@ -500,7 +501,7 @@ void SimpleRender::Shader::compile(const char *vertFilePath, const char *fragFil
 
     // Make sure Fragment Shaders Compiled Correctly
     // Attach & Link Shaders
-    if (vertShader != -1 && fragShader != -1) {
+    if (vertShader != 0 && fragShader != 0) {
         ID = glCreateProgram();
 
         glAttachShader(ID, vertShader);

@@ -11,10 +11,10 @@
  *
  ***************************************************************
  */
-BufferData::BufferData() : verticiesBuffer(0), indiciesBuffer(0), VAO(0), texture(nullptr) {}
+BufferData::BufferData() : VAO(0), verticiesBuffer(0), indiciesBuffer(0), texture(nullptr) {}
 
 BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao)
-    : verticiesBuffer(_vertBuffer), indiciesBuffer(_indBuffer), VAO(_vao), texture(nullptr) {}
+    : VAO(_vao), verticiesBuffer(_vertBuffer), indiciesBuffer(_indBuffer), texture(nullptr) {}
 
 void BufferData::freeBufferData(BufferData* buffer) {
     glDeleteVertexArrays(1, &buffer->VAO);

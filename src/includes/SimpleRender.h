@@ -43,8 +43,8 @@ class SimpleRender {
 
   protected:  // Structure for Better Shader Handling
     struct Shader {
-        bool status;  // Keep track of Shader Status (False = Not Ready | True = Ready)
         GLuint ID;    // Store Compiled Shader Program
+        bool status;  // Keep track of Shader Status (False = Not Ready | True = Ready)
 
         Shader() : ID(0), status(false){};             // No Shader Given
         Shader(GLuint _id) : ID(_id), status(true){};  // Initialize Shader to precompiled Program
@@ -129,7 +129,7 @@ class SimpleRender {
     /**
      * Sets up ImGui and Render it
      */
-    virtual inline void drawImGui();
+    virtual void drawImGui();
 
     /* 
 	 * Fixed Interval Update 
