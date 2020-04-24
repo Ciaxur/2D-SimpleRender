@@ -14,5 +14,12 @@ build-prod:
 build-debug:
 	$(CC) $(INCLUDES) $(MISC) ./src/*.cpp ./src/includes/*.cpp $(FLAGS) -o $(NAME) -g
 
+
+build-fast:
+	$(CC) $(INCLUDES) ./build/*.o ./src/*.cpp $(FLAGS) -o $(NAME)
+
+build-static:
+	$(CC) $(INCLUDES) $(MISC) ./src/includes/*.cpp $(FLAGS) -c && mkdir build && mv *.o ./build
+
 clean:
 	rm ./$(NAME)

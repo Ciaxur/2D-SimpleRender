@@ -20,6 +20,9 @@ class App : public SimpleRender {
   private:
     time_t FshaderLastMod, VshaderLastMod;
     bool shaderUpdateActive = false;
+
+    bool trackMouseMove = false;
+    glm::vec2 prevMousePos = glm::vec2();
     float transX = 0.0f;
     float transY = 0.0f;
 
@@ -73,6 +76,24 @@ class App : public SimpleRender {
         // Log Data
         spdlog::info("TransX[{:.2f}] \t TransY[{:.2f}]", transX, transY);
     }
+
+    void onMouseClick(int button, int action, int mods) {
+        if(button == 0) { // Left-Click
+            trackMouseMove = action;
+        }
+    }
+
+    void onMouse(double xPos, double yPos) {
+        if(trackMouseMove) {
+            transX -= (prevMousePos.x - xPos) / WIDTH;
+            transY += (prevMousePos.y - yPos) / HEIGHT;
+        }
+
+        // Keep Track of Previous xy Position
+        prevMousePos.x = xPos;
+        prevMousePos.y = yPos;
+    }
+
 
 
   public:
