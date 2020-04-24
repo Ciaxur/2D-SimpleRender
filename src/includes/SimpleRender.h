@@ -1,6 +1,7 @@
 #pragma once
 
 // Core Libraries
+#include <spdlog/spdlog.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -8,14 +9,13 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <spdlog/spdlog.h>
 
 // OpenGL Libraries
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_glfw.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/imgui.h>
 
 // GL Math Library
 #include <glm/gtc/type_ptr.hpp>  // Memory Access
@@ -93,24 +93,9 @@ class SimpleRender {
     static GLuint InitShader(std::string srcFile, GLenum shaderType);
 
     /**
-     * Creates Buffer data for Verticies & Indicies provided
-     *  by creating a VAO linked to a VBO and EBO.
-     * Data is configured and packaged in an Object with the
-     *  reference IDs given by OpenGL and returned.
-     *
-     * @param verticies - The Verticies Array, seperated by (x,y,z)/Vertex
-     * @param vSize     - Size of the array in Bytes (sizeof(verticies))
-     * @param indicies - The Indicies Array, specifying the order of Vertex to be drawn
-	 * @param iSize     - Size of the array in Bytes (sizeof(indicies))
-	 * @param programID - Program ID of Compiled Shaders
-     * @return BufferData Object with the Object Reference IDs stored
+     * Returns the Calculated Frames Per Second from Draw Loop
+     *	@returns FPS Value
      */
-    static BufferData createBuffer(GLfloat* verticies, size_t vSize, GLuint* indicies, size_t iSize, GLuint programID);
-
-    /**
-	 * Returns the Calculated Frames Per Second from Draw Loop
-	 *	@returns FPS Value
-	 */
     const double getFPS();
 
 

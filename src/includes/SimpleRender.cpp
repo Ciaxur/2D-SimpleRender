@@ -119,64 +119,6 @@ GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
     return shaderID;
 }
 
-BufferData SimpleRender::createBuffer(GLfloat *verticies, size_t vSize, GLuint *indicies, size_t iSize, GLuint programID) {
-    /* 0. Allocate Verticies Buffer Object on GPU */
-    GLuint VAO;                  // Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
-    GLuint vBuffer;              // Vertex Buffer
-    GLuint iBuffer;              // Element BUffer Object that specifies Order of drawing existing verticies
-    glGenVertexArrays(1, &VAO);  // Create a VAO
-    glGenBuffers(1, &vBuffer);   // Create One Buffer
-    glGenBuffers(1, &iBuffer);   // Create Buffer for Indicies
-
-
-    /* 0.5. Bind the VAO so that the data is stored in it */
-    glBindVertexArray(VAO);
-
-
-    /* 1. Specify how to Interpret the Vertex Data (Buffer Attribute) */
-    // Bind Vertex Buffer Data
-    glBindBuffer(GL_ARRAY_BUFFER, vBuffer);  // Tell OpenGL it's an Array Buffer
-
-    /* Send the data into the Buffer Memory to Binded Buffer
-	 *  GL_STATIC_DRAW:     the data will most likely not change at all or very rarely.
-	 *  GL_DYNAMIC_DRAW:    the data is likely to change a lot.
-	 *  GL_STREAM_DRAW:     the data will change every time it is drawn.
-	 */
-    glBufferData(GL_ARRAY_BUFFER, vSize, verticies, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);  // Enable aPos Attribute
-    glVertexAttribPointer(         //
-        0,                         // Which Index Attribute to Configure (At Location 0, aPos)
-        3,                         // There are Values per Vertex (x,y,z)
-        GL_FLOAT,                  // Type of Data in the Array
-        GL_FALSE,                  // Normalize?
-        9 * sizeof(float),         // Stride till next Vertex
-        (void *)0                  // Pointer to the Beginning position in the Buffer
-    );
-
-
-    /* 2. Store Index Elements Data */
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, indicies, GL_STATIC_DRAW);
-    glDisableVertexAttribArray(0);  // Disable aPos Attribute
-
-
-    /* 3. Configure RGB Attribute */
-    GLuint aRGBA = glGetAttribLocation(programID, "aRGBA");
-    glEnableVertexAttribArray(aRGBA);
-    glVertexAttribPointer(aRGBA, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(3 * sizeof(float)));
-
-    /* 4. Configure Texture Coordinates Attribute */
-    GLuint aTextCoord = glGetAttribLocation(programID, "aTextCoord");
-    glEnableVertexAttribArray(aTextCoord);
-    glVertexAttribPointer(aTextCoord, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(7 * sizeof(float)));
-
-
-    /* 5. Object is ready to be Drawn */
-    BufferData data(vBuffer, iBuffer, VAO);           // Create data Reference Object
-    data.indiciesElts = iSize / sizeof(indicies[0]);  // Store Number of Indicies
-
-    return data;
-}
 
 const double SimpleRender::getFPS() {
     return FPS;
@@ -231,45 +173,15 @@ void SimpleRender::Preload() {
     defaultShader.compile("Shaders/shader.vert", "Shaders/shader.frag");
 
     // Create Object1
+    /* clang-format off */
     GLfloat verticies[] = {
         // Positions<vec3>		RGBA<vec4>					// Texture Coordinates<vec2>
-        -0.4f,
-        -0.2f,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        -0.2f,
-        -0.2f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        1.0f,
-        1.0f,
-        0.0f,
-        -0.4f,
-        0.2f,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        1.0f,
-        0.0f,
-        1.0f,
-        -0.2f,
-        0.2f,
-        0.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
+        -0.4f, -0.2f, 0.0f,     1.0f, 0.0f, 0.0f, 1.0f,     0.0f, 0.0f, 
+        -0.2f, -0.2f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,     1.0f, 0.0f, 
+        -0.4f, 0.2f, 0.0f,      0.0f, 0.0f, 1.0f, 1.0f,     0.0f, 1.0f, 
+        -0.2f, 0.2f, 0.0f,      1.0f, 1.0f, 1.0f, 1.0f,     1.0f, 1.0f,
     };
+    /* clang-format on */
 
     GLuint indicies[] = {
         0, 1, 2,  // First Triangle
@@ -277,8 +189,8 @@ void SimpleRender::Preload() {
     };
 
     // Create and Bind Data to Buffer
-    bufferData.push_back(                                                                         //
-        createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID)  //
+    bufferData.push_back(                                                                                       //
+        CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID)  //
     );
 
 
@@ -290,8 +202,8 @@ void SimpleRender::Preload() {
         0.0f, -0.3f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Top-Left
         0.4f, -0.3f, 0.0f, 0.5f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f,  // Top-Right
     };
-    bufferData.push_back(                                                                           //
-        createBuffer(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader.ID)  //
+    bufferData.push_back(                                                                                       //
+        CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader.ID)  //
     );
 
 
@@ -308,7 +220,7 @@ void SimpleRender::Preload() {
 
 void SimpleRender::fixedUpdate(double deltaTime) {}
 
-void SimpleRender::drawImGui() {    // BUG: ImGui Not Showing :(
+void SimpleRender::drawImGui() {
     ImGui::ShowDemoWindow();
     // ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
@@ -413,8 +325,6 @@ int SimpleRender::run() {
     (void)io;
     ImGui::StyleColorsDark();
 
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");  // GLSL 3.2+
 
@@ -452,7 +362,7 @@ int SimpleRender::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        
+
 
         // Update Uniform Data
         glUniform1f(u_time, currentTime);
@@ -465,7 +375,7 @@ int SimpleRender::run() {
 
         // Setup ImGui
         drawImGui();
-    
+
         // Draw here...
         Draw();
 

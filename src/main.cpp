@@ -5,10 +5,11 @@
 #include <sys/stat.h>
 
 // Helper Libraries
+#include <spdlog/spdlog.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <spdlog/spdlog.h>
 
 // OpenGL Macros
 #define WIDTH 800
@@ -104,7 +105,7 @@ class App : public SimpleRender {
                 3, 2, 1};
 
             bufferData.push_back(
-                createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
+                CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
         }
 
         // Setup Textures for Vert1
@@ -125,7 +126,7 @@ class App : public SimpleRender {
                 3, 2, 1};
 
             bufferData.push_back(
-                createBuffer(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
+                CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
         }
 
 

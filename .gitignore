@@ -1,6 +1,7 @@
 # General Files
 app
 *.out
+imgui.ini
 
 # Directory Files for MS-Windows
 MS Studio/x64
