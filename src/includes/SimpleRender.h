@@ -8,10 +8,14 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 // OpenGL Libraries
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_glfw.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
 
 // GL Math Library
 #include <glm/gtc/type_ptr.hpp>  // Memory Access
@@ -121,6 +125,11 @@ class SimpleRender {
      * Data/Properties to configure prior to Drawing
      */
     virtual void Preload();
+
+    /**
+     * Sets up ImGui and Render it
+     */
+    virtual inline void drawImGui();
 
     /* 
 	 * Fixed Interval Update 

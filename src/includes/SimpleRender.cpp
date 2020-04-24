@@ -18,7 +18,7 @@ void SimpleRender::key_callback(GLFWwindow *window, int key, int scancode, int a
 }
 void SimpleRender::onKey(int key, int scancode, int action, int mods) {
     // Output Key Pressed
-    printf("KEY: Key[%d], ScanCode[%d], Action[%d], Mods[%d]\n", key, scancode, action, mods);
+    spdlog::info("KEY: Key[{}], ScanCode[{}], Action[{}], Mods[{}]\n", key, scancode, action, mods);
 
     // Close window on 'Q' Press
     if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
@@ -36,7 +36,7 @@ void SimpleRender::mouseBtn_callback(GLFWwindow *window, int button, int action,
 }
 void SimpleRender::onMouseClick(int button, int action, int mods) {
     // Output Key Pressed
-    printf("MOUSE: Button[%d], Action[%d], Mods[%d]\n", button, action, mods);
+    spdlog::info("MOUSE: Button[{}], Action[{}], Mods[{}]", button, action, mods);
 }
 
 void SimpleRender::cursorPos_callback(GLFWwindow *window, double xPos, double yPos) {
@@ -55,7 +55,7 @@ void SimpleRender::cursorPos_callback(GLFWwindow *window, double xPos, double yP
 }
 void SimpleRender::onMouse(double xPos, double yPos) {
     // Output Mouse Cursor Position
-    printf("CURSOR: X[%.2f], Y[%.2f]\n", xPos, yPos);
+    spdlog::info("CURSOR: X[{:.1f}], Y[{:.1f}]", xPos, yPos);
 }
 
 void SimpleRender::mouseScroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
@@ -68,12 +68,12 @@ void SimpleRender::mouseScroll_callback(GLFWwindow *window, double xOffset, doub
 }
 void SimpleRender::onMouseScroll(double xOffset, double yOffset) {
     // Output Mouse Cursor Position
-    printf("SCROLL: X-off[%.2f], Y-off[%.2f]\n", xOffset, yOffset);
+    spdlog::info("SCROLL: X-off[{:.2f}], Y-off[{:.2f}]", xOffset, yOffset);
 }
 
 void SimpleRender::error_callback(int error, const char *description) {
     // Output any Errors
-    fprintf(stderr, "Error[%d]: %s\n", error, description);
+    spdlog::error("Error[{}]: {}", error, description);
 }
 
 
@@ -90,7 +90,7 @@ GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
     // Load in Source Code
     std::ifstream in(srcFile);
     if (!in.is_open())  //
-        fprintf(stderr, "Shader Initialize: Source Code %s could not be loaded\n", srcFile.c_str());
+        spdlog::error("Shader Initialize: Source Code {} could not be loaded", srcFile.c_str());
     std::string vertSrc((std::istreambuf_iterator<char>(in)),  //
                         std::istreambuf_iterator<char>());
     in.close();
@@ -307,6 +307,15 @@ void SimpleRender::Preload() {
 
 void SimpleRender::fixedUpdate(double deltaTime) {}
 
+void SimpleRender::drawImGui() {    // BUG: ImGui Not Showin :(
+    ImGui::ShowDemoWindow();
+    // ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+    // ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+    // ImGui::SameLine();
+    // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    // ImGui::End();
+}
 
 
 /**
@@ -326,7 +335,12 @@ SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : 
 }
 
 SimpleRender::~SimpleRender() {
-    printf("\nExiting, cleaning up first...\n");
+    spdlog::info("Exiting, cleaning up first...");
+
+    // Cleanup ImGui
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
 
     /* Free Up Buffer Data */
@@ -352,7 +366,7 @@ int SimpleRender::run() {
     /* Initialize GLFW */
     glewExperimental = true;  // Needed for Core Profile
     if (!glfwInit()) {
-        fprintf(stderr, "Failed to Initialize GLFW\n");
+        spdlog::error("Failed to Initialize GLFW");
         glfwTerminate();
         return -1;
     }
@@ -363,7 +377,7 @@ int SimpleRender::run() {
     glViewport(0, 0, WIDTH, HEIGHT);  // Set Rendering Dimensions
 
     if (!window) {
-        fprintf(stderr, "Failed to open GLFW window!");
+        spdlog::error("Failed to open GLFW window!");
         glfwTerminate();
         return -1;
     }
@@ -377,7 +391,7 @@ int SimpleRender::run() {
 
     /* Initialize GLEW */
     if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Failed to Initalize GLEW\n");
+        spdlog::error("Failed to Initalize GLEW");
         glfwTerminate();
         return -1;
     }
@@ -389,6 +403,16 @@ int SimpleRender::run() {
     glfwSetCursorPosCallback(window, cursorPos_callback);
     glfwSetScrollCallback(window, mouseScroll_callback);
     glfwSetErrorCallback(error_callback);
+
+
+    /* Setup ImGui */
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 150");  // GLSL 3.2+
 
 
     /* Keep track of FPS & Fixed Upate */
@@ -419,11 +443,19 @@ int SimpleRender::run() {
             lastTime += 1.0;
         }
 
+        // Start ImGui Frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Setup & Render ImGui
+        drawImGui();
+        ImGui::Render();
+
         // Update Uniform Data
         glUniform1f(u_time, currentTime);
         glUniform2fv(u_res, 1, glm::value_ptr(v_res));  // A Single vec2 Float
         glUniform2fv(u_mouse, 1, glm::value_ptr(mousePos));
-
 
 
         // Clear the Screen

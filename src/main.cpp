@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <spdlog/spdlog.h>
 
 // OpenGL Macros
 #define WIDTH 800
@@ -69,7 +70,7 @@ class App : public SimpleRender {
 
 
         // Log Data
-        printf("TransX[%.2f] \t TransY[%.2f]\n", transX, transY);
+        spdlog::info("TransX[{:.2f}] \t TransY[{:.2f}]", transX, transY);
     }
 
 
@@ -139,7 +140,7 @@ class App : public SimpleRender {
     }
 
     void fixedUpdate(double dt) override {
-        printf("Delta Time[%.2f]\n", dt);
+        spdlog::info("Delta Time[{:.2f}]", dt);
     }
 
     /* Main Draw location of Application */
@@ -198,6 +199,8 @@ class App : public SimpleRender {
 
 
 int main() {
+    spdlog::info("Welcome to spdlog version {}.{}.{}  !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
+
     App app(WIDTH, HEIGHT, "Triangle OpenGL");
     app.enableLiveShaderUpdate();
 
