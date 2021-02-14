@@ -23,8 +23,10 @@ class App : public SimpleRender {
 
     bool trackMouseMove = false;
     glm::vec2 prevMousePos = glm::vec2();
-    float transX = 0.0f;
-    float transY = 0.0f;
+    float transX    = 0.0f;
+    float transY    = 0.0f;
+    float transZ    = 1.0f;
+    float near      = 1.0f;
 
 
     /* Obtains last updated time of given file */
@@ -78,15 +80,19 @@ class App : public SimpleRender {
     }
 
     void onMouseClick(int button, int action, int mods) {
+        // ImGui Captured Mouse
+        if (ImGui::GetIO().WantCaptureMouse) return;
+        
         if(button == 0) { // Left-Click
             trackMouseMove = action;
         }
     }
 
     void onMouse(double xPos, double yPos) {
-        if(trackMouseMove) {
-            transX -= (prevMousePos.x - xPos) / WIDTH;
-            transY += (prevMousePos.y - yPos) / HEIGHT;
+        // Track mouse movement IF not captured by ImGUI
+        if (trackMouseMove) {
+            transX -= ((prevMousePos.x - xPos) / WIDTH )    * transZ;       // Transform with respect to Z
+            transY += ((prevMousePos.y - yPos) / HEIGHT)    * transZ;
         }
 
         // Keep Track of Previous xy Position
@@ -94,7 +100,33 @@ class App : public SimpleRender {
         prevMousePos.y = yPos;
     }
 
+    void onMouseScroll(double xOffset, double yOffset) {
+        // Zoom in/out by Transforming Z-Axis
+        if (yOffset > 0.0f)
+            transZ -= 0.05f;
+        else if (yOffset < 0.0f)
+            transZ += 0.05f;
+    }
 
+    void _drawImGui() {
+        ImGui::Begin("Debug Menu");
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransX: %.2f", transX);
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransY: %.2f", transY);
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransZ: %.2f", transZ);
+
+        ImGui::BeginGroup();
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Near: %.2f", near);
+        ImGui::SameLine();
+        if (ImGui::SmallButton("-"))
+            near -= 0.01f;
+        ImGui::SameLine();
+
+        if (ImGui::SmallButton("+"))
+            near += 0.01f;
+        ImGui::EndGroup();
+
+        ImGui::End();
+    }
 
   public:
     App(unsigned int width, unsigned int height, const char* title)
@@ -167,6 +199,10 @@ class App : public SimpleRender {
 
     /* Main Draw location of Application */
     void Draw() {
+        // DEBUG: ImGUI for Debugging :)
+        _drawImGui();
+
+
         if (defaultShader.status) {
             defaultShader.use();  // Use Default Program
         }
@@ -177,6 +213,7 @@ class App : public SimpleRender {
 
         // Transform Based on Input
         glm::mat4 trans(1.0f);
+        trans = glm::ortho(-transZ, transZ, -transZ, transZ, -near, near);
         trans = glm::translate(trans, glm::vec3(transX, transY, 0.0f));
 
         GLuint utransfrom = glGetUniformLocation(defaultShader.ID, "transform");
@@ -223,7 +260,7 @@ class App : public SimpleRender {
 int main() {
     spdlog::info("Welcome to spdlog version {}.{}.{}  !", SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
 
-    App app(WIDTH, HEIGHT, "Triangle OpenGL");
+    App app(WIDTH, HEIGHT, "2D Simple Render");
     app.enableLiveShaderUpdate();
 
     int status = app.run();

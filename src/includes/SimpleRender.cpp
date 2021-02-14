@@ -71,6 +71,22 @@ void SimpleRender::onMouseScroll(double xOffset, double yOffset) {
     spdlog::info("SCROLL: X-off[{:.2f}], Y-off[{:.2f}]", xOffset, yOffset);
 }
 
+void SimpleRender::windowResize_callback(GLFWwindow *window, int width, int height) {
+    // Obtain and Cast Object Reference
+    void *r = glfwGetWindowUserPointer(window);
+    if (r != NULL) {
+        SimpleRender *obj = static_cast<SimpleRender *>(r);
+        obj->onWindowResize(width, height);  // Call Overrideable Function
+    }
+}
+
+void SimpleRender::onWindowResize(int width, int height) {
+    this->HEIGHT = height;
+    this->WIDTH = width;
+    glViewport(0, 0, width, height);
+}
+
+
 void SimpleRender::error_callback(int error, const char *description) {
     // Output any Errors
     spdlog::error("Error[{}]: {}", error, description);
@@ -222,8 +238,8 @@ void SimpleRender::fixedUpdate(double deltaTime) {}
 
 void SimpleRender::drawImGui() {
     ImGui::ShowDemoWindow();
-    // ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
+    // ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
     // ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
     // ImGui::SameLine();
     // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -315,6 +331,7 @@ int SimpleRender::run() {
     glfwSetMouseButtonCallback(window, mouseBtn_callback);
     glfwSetCursorPosCallback(window, cursorPos_callback);
     glfwSetScrollCallback(window, mouseScroll_callback);
+    glfwSetWindowSizeCallback(window, windowResize_callback);
     glfwSetErrorCallback(error_callback);
 
 
@@ -352,6 +369,7 @@ int SimpleRender::run() {
         double currentTime = glfwGetTime();
         frameCount++;
         if (currentTime - lastTime >= 1.0) {
+            fixedUpdate(currentTime - lastTime);
             FPS = frameCount;
             frameCount = 0;
             lastTime += 1.0;

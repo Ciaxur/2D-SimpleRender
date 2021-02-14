@@ -34,7 +34,7 @@ endif
 
 # Executes all Caching
 cache-all: pre-compile cache-imgui cache-libs
-cache-clear:
+clear-cache:
 	rm $(OUT)/cache/*.o
 
 # ImGUI Static Building
@@ -49,6 +49,10 @@ ifeq (,$(wildcard $(OUT)/cache/imgui*.o))
 else
 	$(info Already Cached ImGUI)
 endif
+
+clear-libs-cache:
+	$(info Clearing Libs Cache Only...)
+	rm $(addprefix $(OUT)/cache/, BufferData.o SimpleRender.o Texture.o)
 
 cache-libs: pre-compile BufferData.o SimpleRender.o Texture.o
 BufferData.o: cache-imgui

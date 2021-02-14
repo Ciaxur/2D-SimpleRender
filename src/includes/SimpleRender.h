@@ -29,8 +29,8 @@
 
 class SimpleRender {
   private:  // Private Variables | GL Window Data
-    const unsigned int WIDTH = 400;
-    const unsigned int HEIGHT = 400;
+    unsigned int WIDTH = 400;
+    unsigned int HEIGHT = 400;
     double FPS;          // Current Calculated FPS Value
     glm::vec2 mousePos;  // Current Mouse Position
 
@@ -72,6 +72,9 @@ class SimpleRender {
     /* Mouse Cursor Scroll Offset Callback */
     static void mouseScroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 
+    /* Window Resize Callback */
+    static void windowResize_callback(GLFWwindow *window, int width, int height);
+
     /* GLFW Error Callback */
     static void error_callback(int error, const char* description);
 
@@ -81,6 +84,7 @@ class SimpleRender {
     virtual void onMouseClick(int button, int action, int mods);
     virtual void onMouseScroll(double xOffset, double yOffset);
     virtual void onMouse(double xPos, double yPos);
+    virtual void onWindowResize(int width, int height);
 
 
   protected:  // Shared Methods
