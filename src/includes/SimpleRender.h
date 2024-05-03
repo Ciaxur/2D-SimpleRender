@@ -13,8 +13,8 @@
 // OpenGL Libraries
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <imgui/examples/imgui_impl_glfw.h>
-#include <imgui/examples/imgui_impl_opengl3.h>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/imgui.h>
 
 // GL Math Library
@@ -31,7 +31,7 @@ class SimpleRender {
   private:  // Private Variables | GL Window Data
     unsigned int WIDTH = 400;
     unsigned int HEIGHT = 400;
-    double FPS;          // Current Calculated FPS Value
+    double FPS;      // Current Calculated FPS Value
     glm::vec2 mousePos;  // Current Mouse Position
 
 
@@ -43,14 +43,14 @@ class SimpleRender {
 
   protected:  // Structure for Better Shader Handling
     struct Shader {
-        GLuint ID;    // Store Compiled Shader Program
-        bool status;  // Keep track of Shader Status (False = Not Ready | True = Ready)
+      GLuint ID;  // Store Compiled Shader Program
+      bool status;  // Keep track of Shader Status (False = Not Ready | True = Ready)
 
-        Shader() : ID(0), status(false){};             // No Shader Given
-        Shader(GLuint _id) : ID(_id), status(true){};  // Initialize Shader to precompiled Program
+      Shader() : ID(0), status(false){};       // No Shader Given
+      Shader(GLuint _id) : ID(_id), status(true){};  // Initialize Shader to precompiled Program
 
-        void use();                              // Uses Current Program (If any)
-        void compile(const char*, const char*);  // Compiles Given Shader Files (Vertex, Fragment)
+      void use();                // Uses Current Program (If any)
+      void compile(const char*, const char*);  // Compiles Given Shader Files (Vertex, Fragment)
     };
 
   protected:  // Shared Variables
@@ -99,7 +99,7 @@ class SimpleRender {
     /**
      * Returns the Calculated Frames Per Second from Draw Loop
      *	@returns FPS Value
-     */
+    */
     const double getFPS();
 
 
@@ -120,11 +120,11 @@ class SimpleRender {
      */
     virtual void drawImGui();
 
-    /* 
-	 * Fixed Interval Update 
-	 * Used for Physics Sync
-	 *  @param deltaTime - Timestep
-	 */
+    /*
+    * Fixed Interval Update
+    * Used for Physics Sync
+    *  @param deltaTime - Timestep
+    */
     virtual void fixedUpdate(double deltaTime);
 
 

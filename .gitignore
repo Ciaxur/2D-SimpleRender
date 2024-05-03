@@ -1,12 +1,13 @@
 # General Files
 app
 *.out
+*.o
 imgui.ini
 
 # Directory Files for MS-Windows
 MS Studio/x64
 MS Studio/.vs
 MS Studio/Shaders/
+
 .vs
-build
-.vscode
+.vscode*
