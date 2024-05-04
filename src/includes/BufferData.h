@@ -2,11 +2,10 @@
 
 // Library
 #include "Texture.h"
+#include "Shader.h"
 
 // Core libraries
 #include <GL/glew.h>
-
-#include "Texture.h"
 
 /**
  * Stores Data Objects of the There
@@ -20,12 +19,14 @@
  *
  */
 class BufferData {
-  public:           // Public Variables
-    GLuint VAO;         // Vertex Array Object
+  public:                     // Public Variables
+    GLuint VAO;               // Vertex Array Object
     GLuint verticiesBuffer;   // Vertex Buffer
-    GLuint indiciesBuffer;  // Index Buffer
-    Texture *texture;     // Texture Object
+    GLuint indiciesBuffer;    // Index Buffer
+    Texture *texture;         // Texture Object
     size_t indiciesElts = 0;  // Number of Indicies
+    Shader *shader;           // Bound shader program on this buffer
+
 
     /* Default Constructor: Initialize everything to 0 */
     BufferData();
