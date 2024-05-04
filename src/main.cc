@@ -4,6 +4,7 @@
 // Helper Libraries
 #include <spdlog/spdlog.h>
 
+// Graphics libraries.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -16,7 +17,6 @@
 class App : public SimpleRender {
   private:
     bool shaderUpdateActive = false;
-
     bool trackMouseMove = false;
     glm::vec2 prevMousePos = glm::vec2();
     float transX  = 0.0f;
@@ -239,11 +239,10 @@ class App : public SimpleRender {
 
         // Deactivate shader program.
         glUseProgram(0);
-      }
 
-      // TODO: add to poll thread.
-      // Live GLSL Shader Update
-      // if (shaderUpdateActive) defaultShader->liveGLSLUpdateShaders();
+        // Live update each shader on mod.
+        if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
+      }
     }
 };
 

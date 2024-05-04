@@ -100,7 +100,7 @@ void Shader::compile(const char *vertFilePath, const char *fragFilePath) {
 
     // Success
     else {
-      spdlog::info("Program Shader Compiled Successfuly!");
+      spdlog::info("Program Shader[{}] Compiled Successfuly!", ID);
       ready = true;
     }
 
