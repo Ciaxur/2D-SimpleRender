@@ -44,10 +44,7 @@ class SimpleRender {
 
 
   protected:  // Shared Variables
-    std::shared_ptr<Shader> defaultShader;
     std::vector<BufferData> bufferData;  // Store References the Buffer Data
-
-
 
   private:  // Private Methods (Static - Callbacks)
     /* Called when Key Pressed */
@@ -128,6 +125,17 @@ class SimpleRender {
      * Constuctor that initalizes GLFW with default Width and Height
      */
     void InitRender();
+
+    /**
+     * Returns the pointer of current active window.
+     */
+    GLFWwindow* getWindow();
+
+    /**
+     * Returns the current position of the mouse.
+      */
+    const glm::vec2 getMousePos();
+
 
     /**
      * Starts running OpenGL window

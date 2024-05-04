@@ -109,9 +109,6 @@ class App : public SimpleRender {
 
     /* Configure/Load Data that will be used in Application */
     void Preload() {
-      // Load in Default Shaders
-      defaultShader->compile("./shaders/shader.vert", "./shaders/shader.frag");
-
       // Setting Up Verticies
       {
         GLfloat verticies[] = {
@@ -127,13 +124,20 @@ class App : public SimpleRender {
           3, 2, 1
         };
 
-        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader);
+        // Custom shader.
+        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
+
+        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
         buffer.texture = new Texture("./textures/615-checkerboard.png");
         bufferData.push_back(buffer);;
       }
 
       // Verticies 2
       {
+        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+        shader->compile("./shaders/shader.vert", "./shaders/shader.frag");
+
         GLfloat verticies[] = {
           // VERTEX<vec3>		    RGBA<vec4>					      // Texture Coordinates<vec2>
           -0.8f, -0.5f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
@@ -147,7 +151,7 @@ class App : public SimpleRender {
           3, 2, 1
         };
 
-        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader);
+        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
         buffer.texture = new Texture("./textures/texture.png");
         bufferData.push_back(buffer);
       }
@@ -164,26 +168,49 @@ class App : public SimpleRender {
       spdlog::info("Delta Time[{:.2f}]", dt);
     }
 
-    /* Main Draw location of Application */
-    void Draw() {
-      if (defaultShader->ready) {
-        defaultShader->use();  // Use Default Program
-      }
-
-      // Output FPS to Window Title
-      sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
-      glfwSetWindowTitle(window, titleBuffer);
-
+    void updateUniforms(Shader *shader) {
       // Transform Based on Input
       glm::mat4 trans(1.0f);
       trans = glm::ortho(-transZ, transZ, -transZ, transZ, -near, near);
       trans = glm::translate(trans, glm::vec3(transX, transY, 0.0f));
 
-      GLuint utransfrom = glGetUniformLocation(defaultShader->ID, "transform");
+      /* Get Uniform Locations */
+      GLuint utransfrom = glGetUniformLocation(shader->ID, "transform");
+      GLint u_time = glGetUniformLocation(shader->ID, "u_time");
+      GLint u_mouse = glGetUniformLocation(shader->ID, "u_mouse");
+      GLint u_res = glGetUniformLocation(shader->ID, "u_res");
+
+      // Pass in the canvas transform.
       glUniformMatrix4fv(utransfrom, 1, GL_FALSE, glm::value_ptr(trans));
+
+      // Update Uniform Data
+      glUniform1f(u_time, glfwGetTime());
+
+      // Set Resolution Vector
+      int width, height;
+      glfwGetWindowSize(this->getWindow(), &width, &height);
+      glm::vec2 v_res(width, height);
+      glUniform2fv(u_res, 1, glm::value_ptr(v_res));  // A Single vec2 Float
+
+      // Mouse position.
+      glUniform2fv(u_mouse, 1, glm::value_ptr(this->getMousePos()));
+    }
+
+    /* Main Draw location of Application */
+    void Draw() {
+      // Output FPS to Window Title
+      sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
+      glfwSetWindowTitle(window, titleBuffer);
+
 
       // Draw From the Buffer
       for (BufferData& bd : bufferData) {
+        // Activate the bound shader program.
+        bd.shader->use();
+
+        // Pass in the uniform values into each of the vertex shader programs.
+        updateUniforms(bd.shader.get());
+
         // Enable aPos Attribute
         glEnableVertexAttribArray(0);
 
@@ -194,24 +221,24 @@ class App : public SimpleRender {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
 
         // Bind the Texture
-        if (bd.texture)
-          bd.texture->bind(0);
-
+        if (bd.texture) bd.texture->bind(0);
 
         // Draw
         glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
 
-
         // Unbind the Texture
-        if (bd.texture)
-          bd.texture->unbind();
+        if (bd.texture) bd.texture->unbind();
 
         // Disable aPos Attribute
         glDisableVertexAttribArray(0);
+
+        // Deactivate shader program.
+        glUseProgram(0);
       }
 
+      // TODO: add to poll thread.
       // Live GLSL Shader Update
-      if (shaderUpdateActive) defaultShader->liveGLSLUpdateShaders();
+      // if (shaderUpdateActive) defaultShader->liveGLSLUpdateShaders();
     }
 };
 

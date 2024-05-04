@@ -75,6 +75,9 @@ void Shader::compile(const char *vertFilePath, const char *fragFilePath) {
   GLuint fragShader = loadShader(fragFilePath, GL_FRAGMENT_SHADER);
   GLuint vertShader = loadShader(vertFilePath, GL_VERTEX_SHADER);
 
+  // Make sure to clean up program before creating a new one.
+  this->deleteShader();
+
   // Make sure Fragment Shaders Compiled Correctly
   // Attach & Link Shaders
   if (vertShader != 0 && fragShader != 0) {
@@ -99,11 +102,13 @@ void Shader::compile(const char *vertFilePath, const char *fragFilePath) {
     else {
       spdlog::info("Program Shader Compiled Successfuly!");
       ready = true;
-
-      // Delete Shaders
-      glDeleteShader(vertShader);
-      glDeleteShader(fragShader);
     }
+
+    // Delete Shaders
+    if (vertShader != 0)
+      glDeleteShader(vertShader);
+    if (fragShader != 0)
+      glDeleteShader(fragShader);
   }
 }
 

@@ -117,15 +117,35 @@ const double SimpleRender::getFPS() {
  */
 
 void SimpleRender::Draw() {
-  // Draw the Object
-  defaultShader->use();
-
   // Output FPS to Window Title
   sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
   glfwSetWindowTitle(window, titleBuffer);
 
+
   // Render all Buffer Data
   for (BufferData &bd : bufferData) {
+    // Activate the bound shader program.
+    bd.shader->use();
+
+    /* Update Uniform values */
+    {
+      GLint u_time = glGetUniformLocation(bd.shader->ID, "u_time");
+      GLint u_mouse = glGetUniformLocation(bd.shader->ID, "u_mouse");
+      GLint u_res = glGetUniformLocation(bd.shader->ID, "u_res");
+
+      // Update Uniform Data
+      glUniform1f(u_time, glfwGetTime());
+
+      // Set Resolution Vector
+      int width, height;
+      glfwGetWindowSize(this->getWindow(), &width, &height);
+      glm::vec2 v_res(width, height);
+      glUniform2fv(u_res, 1, glm::value_ptr(v_res));  // A Single vec2 Float
+
+      // Mouse position.
+      glUniform2fv(u_mouse, 1, glm::value_ptr(this->getMousePos()));
+    }
+
     // Enable aPos Attribute
     glEnableVertexAttribArray(0);
 
@@ -135,17 +155,27 @@ void SimpleRender::Draw() {
     // Bind Indicies
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
 
+    // Bind the Texture
+    if (bd.texture) bd.texture->bind(0);
+
     // Draw the Elements
     glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
 
+    // Unbind the Texture
+    if (bd.texture) bd.texture->unbind();
+
     // Finished with aPos Attribute
     glDisableVertexAttribArray(0);
+
+    // Deactivate shader program.
+    glUseProgram(0);
   }
 }
 
 void SimpleRender::Preload() {
   // Load in Default Shaders
-  defaultShader->compile("Shaders/shader.vert", "Shaders/shader.frag");
+  std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+  shader->compile("Shaders/shader.vert", "Shaders/shader.frag");
 
   // Create Object1
   GLfloat verticies[] = {
@@ -163,7 +193,7 @@ void SimpleRender::Preload() {
 
   // Create and Bind Data to Buffer
   bufferData.push_back(
-    CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader)
+    CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader)
   );
 
 
@@ -176,7 +206,7 @@ void SimpleRender::Preload() {
     0.4f, -0.3f, 0.0f, 0.5f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f,  // Top-Right
   };
   bufferData.push_back(
-    CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader)
+    CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), shader)
   );
 
 
@@ -217,7 +247,6 @@ void SimpleRender::drawImGui() {
 
 SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h) {
   this->title = title;
-  this->defaultShader = std::make_shared<Shader>();
   InitRender();
 }
 
@@ -311,15 +340,6 @@ int SimpleRender::run() {
   /* Run Pre-Start Function */
   Preload();
 
-  /* Get Uniform Locations */
-  GLint u_time = glGetUniformLocation(this->defaultShader->ID, "u_time");
-  GLint u_mouse = glGetUniformLocation(this->defaultShader->ID, "u_mouse");
-  GLint u_res = glGetUniformLocation(this->defaultShader->ID, "u_res");
-
-  /* Set Uniform Data */
-  glm::vec2 v_res(this->WIDTH, this->HEIGHT);  // Set Resolution Vector
-
-
   /* Keep Window open until 'Q' key is pressed */
   glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
   do {
@@ -337,13 +357,6 @@ int SimpleRender::run() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-
-
-
-    // Update Uniform Data
-    glUniform1f(u_time, currentTime);
-    glUniform2fv(u_res, 1, glm::value_ptr(v_res));  // A Single vec2 Float
-    glUniform2fv(u_mouse, 1, glm::value_ptr(mousePos));
 
 
     // Clear the Screen
@@ -368,4 +381,12 @@ int SimpleRender::run() {
 
   // No Issues
   return 0;
+}
+
+GLFWwindow* SimpleRender::getWindow() {
+  return this->window;
+}
+
+const glm::vec2 SimpleRender::getMousePos() {
+  return this->mousePos;
 }

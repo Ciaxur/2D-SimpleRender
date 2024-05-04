@@ -12,7 +12,7 @@ class Shader {
     time_t FshaderLastMod = 0, VshaderLastMod = 0;
 
   public:
-    GLuint ID;      // Store Compiled Shader Program
+    GLuint ID;     // Store Compiled Shader Program
     bool ready;    // Keep track of Shader Status (False = Not Ready | True = Ready)
 
   public:
