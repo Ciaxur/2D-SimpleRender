@@ -1,4 +1,5 @@
 #include "BufferData.h"
+#include <spdlog/spdlog.h>
 
 /*
  ***************************************************************
@@ -23,9 +24,6 @@ void BufferData::freeBufferData(BufferData* buffer) {
 
   if (buffer->texture)
     delete buffer->texture;
-
-  if (buffer->shader)
-    delete buffer->shader;
 }
 
 
@@ -48,7 +46,7 @@ void BufferData::freeBufferData(BufferData* buffer) {
  * @return BufferData Object with the Object Reference IDs stored
  */
 
-BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, GLuint programID) {
+BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
   /* 0. Allocate Verticies Buffer Object on GPU */
   GLuint VAO;          // Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
   GLuint vBuffer;        // Vertex Buffer
@@ -90,12 +88,12 @@ BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* i
 
 
   /* 3. Configure RGB Attribute */
-  GLuint aRGBA = glGetAttribLocation(programID, "aRGBA");
+  GLuint aRGBA = glGetAttribLocation(shader->ID, "aRGBA");
   glEnableVertexAttribArray(aRGBA);
   glVertexAttribPointer(aRGBA, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
 
   /* 4. Configure Texture Coordinates Attribute */
-  GLuint aTextCoord = glGetAttribLocation(programID, "aTextCoord");
+  GLuint aTextCoord = glGetAttribLocation(shader->ID, "aTextCoord");
   glEnableVertexAttribArray(aTextCoord);
   glVertexAttribPointer(aTextCoord, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7 * sizeof(float)));
 
@@ -103,6 +101,9 @@ BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* i
   /* 5. Object is ready to be Drawn */
   BufferData data(vBuffer, iBuffer, VAO);       // Create data Reference Object
   data.indiciesElts = iSize / sizeof(indicies[0]);  // Store Number of Indicies
+
+  // Keep track of the applied shader so that it doesn't get deallocated while in use.
+  data.shader = shader;
 
   return data;
 }

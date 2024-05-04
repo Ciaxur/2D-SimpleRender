@@ -6,6 +6,7 @@
 
 // Core libraries
 #include <GL/glew.h>
+#include <memory>
 
 /**
  * Stores Data Objects of the There
@@ -25,7 +26,10 @@ class BufferData {
     GLuint indiciesBuffer;    // Index Buffer
     Texture *texture;         // Texture Object
     size_t indiciesElts = 0;  // Number of Indicies
-    Shader *shader;           // Bound shader program on this buffer
+
+    // Shared pointer to a shader since there could be multiple references.
+    // Bound shader program on this buffer.
+    std::shared_ptr<Shader> shader;
 
 
     /* Default Constructor: Initialize everything to 0 */
@@ -46,5 +50,5 @@ class BufferData {
 
 namespace CreateBuffer {
   /* Creates a StaticDraw Float Buffer */
-	BufferData static_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, GLuint programID);
+	BufferData static_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
 };

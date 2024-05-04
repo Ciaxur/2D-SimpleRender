@@ -1,9 +1,6 @@
 // Engine Libraries
 #include "includes/SimpleRender.h"
 
-// Core Libraries
-#include <sys/stat.h>
-
 // Helper Libraries
 #include <spdlog/spdlog.h>
 
@@ -18,7 +15,6 @@
 
 class App : public SimpleRender {
   private:
-    time_t FshaderLastMod, VshaderLastMod;
     bool shaderUpdateActive = false;
 
     bool trackMouseMove = false;
@@ -27,33 +23,6 @@ class App : public SimpleRender {
     float transY  = 0.0f;
     float transZ  = 1.0f;
     float near    = 1.0f;
-
-
-    /* Obtains last updated time of given file */
-    static time_t getLastModified(const char* filename) {
-      struct stat st;
-      if (stat(filename, &st) == 0) {
-        return st.st_mtime;
-      }
-
-      return -1;
-    }
-
-    /* Updates Shaders Live */
-    void liveGLSLUpdateShaders() {
-      // Check & Update Fragment Shader
-      time_t newFshaderLastMod = getLastModified("./shaders/shader.frag");
-      time_t newVshaderLastMod = getLastModified("./shaders/shader.vert");
-
-      if (newFshaderLastMod != FshaderLastMod || newVshaderLastMod != VshaderLastMod) {
-        FshaderLastMod = newFshaderLastMod;
-        VshaderLastMod = newVshaderLastMod;
-
-        // Re-Compile Shaders
-        // Attach & Link Shaders & Use
-        defaultShader.compile("./shaders/shader.vert", "./shaders/shader.frag");
-      }
-    }
 
     void onKey(int key, int scancode, int action, int mods) {
       float offset = 0.01f;
@@ -132,8 +101,8 @@ class App : public SimpleRender {
   public:
     App(unsigned int width, unsigned int height, const char* title)
       : SimpleRender(width, height, title) {
-      FshaderLastMod = VshaderLastMod = 0;
-    }
+        this->bufferData.clear();
+      }
 
     void enableLiveShaderUpdate() { shaderUpdateActive = true; }
     void disableLiveShaderUpdate() { shaderUpdateActive = false; }
@@ -141,7 +110,7 @@ class App : public SimpleRender {
     /* Configure/Load Data that will be used in Application */
     void Preload() {
       // Load in Default Shaders
-      defaultShader.compile("./shaders/shader.vert", "./shaders/shader.frag");
+      defaultShader->compile("./shaders/shader.vert", "./shaders/shader.frag");
 
       // Setting Up Verticies
       {
@@ -158,13 +127,10 @@ class App : public SimpleRender {
           3, 2, 1
         };
 
-        bufferData.push_back(
-          CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
+        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader);
+        buffer.texture = new Texture("./textures/615-checkerboard.png");
+        bufferData.push_back(buffer);;
       }
-
-      // Setup Textures for Vert1
-      bufferData.back().texture = new Texture("./textures/615-checkerboard.png");
-
 
       // Verticies 2
       {
@@ -181,19 +147,17 @@ class App : public SimpleRender {
           3, 2, 1
         };
 
-        bufferData.push_back(
-          CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID));
+        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader);
+        buffer.texture = new Texture("./textures/texture.png");
+        bufferData.push_back(buffer);
       }
 
-
-      // Setup Textures for Vert2
-      bufferData.back().texture = new Texture("./textures/texture.png");
-
+      spdlog::info("Loaded buffers -> {}", bufferData.size());
 
       // Display some Internal Info
       int nrAttribs;
       glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttribs);
-      std::cout << "Maximum number of Vertex Attributes Supported: " << nrAttribs << std::endl;
+      spdlog::info("Maximum number of Vertex Attributes Supported: {}", nrAttribs);
     }
 
     void fixedUpdate(double dt) override {
@@ -202,8 +166,8 @@ class App : public SimpleRender {
 
     /* Main Draw location of Application */
     void Draw() {
-      if (defaultShader.status) {
-        defaultShader.use();  // Use Default Program
+      if (defaultShader->ready) {
+        defaultShader->use();  // Use Default Program
       }
 
       // Output FPS to Window Title
@@ -215,10 +179,8 @@ class App : public SimpleRender {
       trans = glm::ortho(-transZ, transZ, -transZ, transZ, -near, near);
       trans = glm::translate(trans, glm::vec3(transX, transY, 0.0f));
 
-      GLuint utransfrom = glGetUniformLocation(defaultShader.ID, "transform");
+      GLuint utransfrom = glGetUniformLocation(defaultShader->ID, "transform");
       glUniformMatrix4fv(utransfrom, 1, GL_FALSE, glm::value_ptr(trans));
-
-
 
       // Draw From the Buffer
       for (BufferData& bd : bufferData) {
@@ -248,9 +210,8 @@ class App : public SimpleRender {
         glDisableVertexAttribArray(0);
       }
 
-
       // Live GLSL Shader Update
-      if (shaderUpdateActive) liveGLSLUpdateShaders();
+      if (shaderUpdateActive) defaultShader->liveGLSLUpdateShaders();
     }
 };
 

@@ -1,7 +1,8 @@
 TARGET := app
 CC := g++
 COMPILER_MACROS = -D SPDLOG_COMPILED_LIB
-FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall -O3 $(COMPILER_MACROS)
+OPTIMIZATIONS := -O3
+FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall $(COMPILER_MACROS) $(OPTIMIZATIONS)
 INCLUDES := -I ./dependencies -I ./dependencies/stb_image -I ./dependencies/spdlog/include -I ./dependencies/imgui
 
 # ImGUI backend source paths

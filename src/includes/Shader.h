@@ -4,15 +4,26 @@
 #include <string>
 
 // Structure for Better Shader Handling
-struct Shader {
-  GLuint ID;      // Store Compiled Shader Program
-  bool status;    // Keep track of Shader Status (False = Not Ready | True = Ready)
+class Shader {
+  private:
+    // Paths to compiled shaders.
+    std::string vertexShaderFilepath;
+    std::string fragmentShaderFilepath;
+    time_t FshaderLastMod = 0, VshaderLastMod = 0;
 
-  Shader() : ID(0), status(false){};              // No Shader Given
-  Shader(GLuint _id) : ID(_id), status(true){};   // Initialize Shader to precompiled Program
+  public:
+    GLuint ID;      // Store Compiled Shader Program
+    bool ready;    // Keep track of Shader Status (False = Not Ready | True = Ready)
 
-  void use();                               // Uses Current Program (If any)
-  void compile(const char*, const char*);   // Compiles Given Shader Files (Vertex, Fragment)
+  public:
+    Shader();               // No Shader Given
+    Shader(GLuint _id);     // Initialize Shader to precompiled Program
+    ~Shader();
+
+    void use();                               // Uses Current Program (If any)
+    void compile(const char*, const char*);   // Compiles Given Shader Files (Vertex, Fragment)
+    void liveGLSLUpdateShaders();             // Updates the shader if the filepath was modified.
+    void deleteShader();                      // Cleans up shader.
 };
 
 /**

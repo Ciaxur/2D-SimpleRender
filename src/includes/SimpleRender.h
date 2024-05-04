@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <memory>
 #include <iostream>
 #include <vector>
 
@@ -43,7 +44,7 @@ class SimpleRender {
 
 
   protected:  // Shared Variables
-    Shader defaultShader;
+    std::shared_ptr<Shader> defaultShader;
     std::vector<BufferData> bufferData;  // Store References the Buffer Data
 
 

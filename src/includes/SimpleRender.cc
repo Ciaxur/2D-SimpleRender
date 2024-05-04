@@ -118,7 +118,7 @@ const double SimpleRender::getFPS() {
 
 void SimpleRender::Draw() {
   // Draw the Object
-  defaultShader.use();
+  defaultShader->use();
 
   // Output FPS to Window Title
   sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
@@ -145,7 +145,7 @@ void SimpleRender::Draw() {
 
 void SimpleRender::Preload() {
   // Load in Default Shaders
-  defaultShader.compile("Shaders/shader.vert", "Shaders/shader.frag");
+  defaultShader->compile("Shaders/shader.vert", "Shaders/shader.frag");
 
   // Create Object1
   GLfloat verticies[] = {
@@ -163,7 +163,7 @@ void SimpleRender::Preload() {
 
   // Create and Bind Data to Buffer
   bufferData.push_back(
-    CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader.ID)
+    CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), defaultShader)
   );
 
 
@@ -176,7 +176,7 @@ void SimpleRender::Preload() {
     0.4f, -0.3f, 0.0f, 0.5f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f,  // Top-Right
   };
   bufferData.push_back(
-    CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader.ID)
+    CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), defaultShader)
   );
 
 
@@ -217,6 +217,7 @@ void SimpleRender::drawImGui() {
 
 SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h) {
   this->title = title;
+  this->defaultShader = std::make_shared<Shader>();
   InitRender();
 }
 
@@ -311,9 +312,9 @@ int SimpleRender::run() {
   Preload();
 
   /* Get Uniform Locations */
-  GLint u_time = glGetUniformLocation(this->defaultShader.ID, "u_time");
-  GLint u_mouse = glGetUniformLocation(this->defaultShader.ID, "u_mouse");
-  GLint u_res = glGetUniformLocation(this->defaultShader.ID, "u_res");
+  GLint u_time = glGetUniformLocation(this->defaultShader->ID, "u_time");
+  GLint u_mouse = glGetUniformLocation(this->defaultShader->ID, "u_mouse");
+  GLint u_res = glGetUniformLocation(this->defaultShader->ID, "u_res");
 
   /* Set Uniform Data */
   glm::vec2 v_res(this->WIDTH, this->HEIGHT);  // Set Resolution Vector
