@@ -84,6 +84,11 @@ class App : public SimpleRender {
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransZ: %.2f", transZ);
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "FPS: %.2f", this->getFPS());
 
+      // Window dimensions.
+      int width, height;
+      glfwGetWindowSize(this->getWindow(), &width, &height);
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Window: %dx%d", width, height);
+
       ImGui::BeginGroup();
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Near: %.2f", near);
       ImGui::SameLine();
