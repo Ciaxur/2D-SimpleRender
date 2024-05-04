@@ -24,6 +24,7 @@
 
 // Project Libraries
 #include "BufferData.h"
+#include "Shader.h"
 
 
 
@@ -40,18 +41,6 @@ class SimpleRender {
     const char* title = "GLFW Window";
     char titleBuffer[256];  // Used for Temporary Character Storage (Window Title)
 
-
-  protected:  // Structure for Better Shader Handling
-    struct Shader {
-      GLuint ID;  // Store Compiled Shader Program
-      bool status;  // Keep track of Shader Status (False = Not Ready | True = Ready)
-
-      Shader() : ID(0), status(false){};       // No Shader Given
-      Shader(GLuint _id) : ID(_id), status(true){};  // Initialize Shader to precompiled Program
-
-      void use();                // Uses Current Program (If any)
-      void compile(const char*, const char*);  // Compiles Given Shader Files (Vertex, Fragment)
-    };
 
   protected:  // Shared Variables
     Shader defaultShader;
@@ -88,14 +77,6 @@ class SimpleRender {
 
 
   protected:  // Shared Methods
-    /**
-     * Initializes Source Code of given shaderType
-     * @param srcFile - The Source Code path for the Shader
-     * @param shaderType - The Shader Type
-     * @return - Shader Reference ID, Returns -1 if Failed
-     */
-    static GLuint InitShader(std::string srcFile, GLenum shaderType);
-
     /**
      * Returns the Calculated Frames Per Second from Draw Loop
      *	@returns FPS Value

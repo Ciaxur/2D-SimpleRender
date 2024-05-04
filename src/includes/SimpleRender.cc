@@ -96,52 +96,6 @@ void SimpleRender::error_callback(int error, const char *description) {
   spdlog::error("Error[{}]: {}", error, description);
 }
 
-
-/**
- ***********************************************************
- * Private Static Methods Backend
- * Initialization of Backend Functionallity
- *		-Shaders
- *		-Buffers
- ***********************************************************
- * Error: Returns 0 if Shader Failed
- */
-
-GLuint SimpleRender::InitShader(std::string srcFile, GLenum shaderType) {
-  // Load in Source Code
-  std::ifstream in(srcFile);
-  if (!in.is_open())
-    spdlog::error("Shader Initialize: Source Code {} could not be loaded", srcFile.c_str());
-
-  std::string vertSrc((
-    std::istreambuf_iterator<char>(in)),
-    std::istreambuf_iterator<char>()
-  );
-  in.close();
-
-  const char *c_str = vertSrc.c_str();
-
-  // Compile and Store Shader
-  GLuint shaderID = glCreateShader(shaderType);  // Stores Reference ID
-  glShaderSource(shaderID, 1, &c_str, NULL);
-  glCompileShader(shaderID);
-
-
-  // Check for Errors
-  int success;
-  char infoLog[512];
-  glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
-    std::cerr << "Initialize Shaders: Error in Compiling Shader Source!\n" << infoLog;
-    return -1;
-  }
-
-  // Return the Shader Reference ID Created
-  return shaderID;
-}
-
-
 const double SimpleRender::getFPS() {
   return FPS;
 }
@@ -413,59 +367,4 @@ int SimpleRender::run() {
 
   // No Issues
   return 0;
-}
-
-
-/*
- ***********************************************************
- * Shader Structure
- *
- *	- Ease of Use for Shaders
- *  - Compiles and Stores Shader Attributes
- ***********************************************************
- */
-
-void SimpleRender::Shader::use() {
-  if (status)
-    glUseProgram(ID);  // Make Sure ther IS a Valid Program ID
-  else
-    std::cerr << "Shader Struct: No Program to use!\n";
-}
-
-void SimpleRender::Shader::compile(const char *vertFilePath, const char *fragFilePath) {
-  // Initialize the Shaders
-  GLuint fragShader = InitShader(fragFilePath, GL_FRAGMENT_SHADER);
-  GLuint vertShader = InitShader(vertFilePath, GL_VERTEX_SHADER);
-
-  // Make sure Fragment Shaders Compiled Correctly
-  // Attach & Link Shaders
-  if (vertShader != 0 && fragShader != 0) {
-    ID = glCreateProgram();
-
-    glAttachShader(ID, vertShader);
-    glAttachShader(ID, fragShader);
-    glLinkProgram(ID);
-
-    // Check for Linking Errors
-    char infoLog[512];
-    int success;
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if (!success) {
-      glGetProgramInfoLog(ID, 512, NULL, infoLog);
-      std::cerr << "Program Linking ERROR: Failed to link\n"
-        << infoLog;
-
-      status = false;
-    }
-
-    // Success
-    else {
-      std::cout << "Program Shader Compiled Successfuly!\n";
-      status = true;
-
-      // Delete Shaders
-      glDeleteShader(vertShader);
-      glDeleteShader(fragShader);
-    }
-  }
 }
