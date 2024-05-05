@@ -12,10 +12,23 @@
  *
  ***************************************************************
  */
-BufferData::BufferData() : VAO(0), verticiesBuffer(0), indiciesBuffer(0), texture(nullptr), shader(nullptr) {}
+BufferData::BufferData() {
+  this->VAO = 0;
+  this->verticiesBuffer = 0;
+  this->indiciesBuffer = 0;
+  this->texture = nullptr;
+  this->shader = nullptr;
+  this->data_ptr = nullptr;
+}
 
-BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao)
-  : VAO(_vao), verticiesBuffer(_vertBuffer), indiciesBuffer(_indBuffer), texture(nullptr), shader(nullptr) {}
+BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao) {
+  this->VAO = _vao;
+  this->verticiesBuffer = _vertBuffer;
+  this->indiciesBuffer = _indBuffer;
+  this->texture = nullptr;
+  this->shader = nullptr;
+  this->data_ptr = nullptr;
+}
 
 void BufferData::freeBufferData(BufferData* buffer) {
   glDeleteVertexArrays(1, &buffer->VAO);
@@ -24,6 +37,18 @@ void BufferData::freeBufferData(BufferData* buffer) {
 
   if (buffer->texture)
     delete buffer->texture;
+
+  if (buffer->data_ptr)
+    delete[] buffer->data_ptr;
+}
+
+void BufferData::update() {
+  glNamedBufferSubData(
+    this->verticiesBuffer,
+    0,
+    sizeof(this->data_ptr),
+    this->data_ptr
+  );
 }
 
 
@@ -46,11 +71,11 @@ void BufferData::freeBufferData(BufferData* buffer) {
  * @return BufferData Object with the Object Reference IDs stored
  */
 
-BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage) {
   /* 0. Allocate Verticies Buffer Object on GPU */
-  GLuint VAO;          // Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
-  GLuint vBuffer;        // Vertex Buffer
-  GLuint iBuffer;        // Element BUffer Object that specifies Order of drawing existing verticies
+  GLuint VAO;                  // Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
+  GLuint vBuffer;              // Vertex Buffer
+  GLuint iBuffer;              // Element Buffer Object that specifies Order of drawing existing verticies
   glGenVertexArrays(1, &VAO);  // Create a VAO
   glGenBuffers(1, &vBuffer);   // Create One Buffer
   glGenBuffers(1, &iBuffer);   // Create Buffer for Indicies
@@ -65,11 +90,12 @@ BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* i
   glBindBuffer(GL_ARRAY_BUFFER, vBuffer);  // Tell OpenGL it's an Array Buffer
 
   /* Send the data into the Buffer Memory to Binded Buffer
+   * Docs: https://docs.gl/gl4/glBufferData
 	 *  GL_STATIC_DRAW:   the data will most likely not change at all or very rarely.
 	 *  GL_DYNAMIC_DRAW:  the data is likely to change a lot.
 	 *  GL_STREAM_DRAW:   the data will change every time it is drawn.
 	 */
-  glBufferData(GL_ARRAY_BUFFER, vSize, dataPack, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vSize, dataPack, buffer_usage);
   glEnableVertexAttribArray(0);  // Enable aPos Attribute
   glVertexAttribPointer(
     0,                    // Which Index Attribute to Configure (At Location 0, aPos)
@@ -83,7 +109,7 @@ BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* i
 
   /* 2. Store Index Elements Data */
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, indicies, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, iSize, indicies, buffer_usage);
   glDisableVertexAttribArray(0);  // Disable aPos Attribute
 
 
@@ -99,11 +125,27 @@ BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* i
 
 
   /* 5. Object is ready to be Drawn */
-  BufferData data(vBuffer, iBuffer, VAO);       // Create data Reference Object
-  data.indiciesElts = iSize / sizeof(indicies[0]);  // Store Number of Indicies
+  BufferData data(vBuffer, iBuffer, VAO);             // Create data Reference Object
+  data.indiciesElts = iSize / sizeof(indicies[0]);    // Store Number of Indicies
 
   // Keep track of the applied shader so that it doesn't get deallocated while in use.
   data.shader = shader;
 
+  // Store a copy of the data.
+  data.data_ptr = new GLfloat[vSize];
+  memcpy(data.data_ptr, dataPack, vSize);
+
   return data;
+}
+
+BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+  return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_STATIC_DRAW);
+}
+
+BufferData CreateBuffer::stream_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+  return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_STREAM_DRAW);
+}
+
+BufferData CreateBuffer::dynamic_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+  return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_DYNAMIC_DRAW);
 }

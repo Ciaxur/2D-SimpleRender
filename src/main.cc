@@ -10,8 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // OpenGL Macros
-#define WIDTH 800
-#define HEIGHT 400
+#define WIDTH 1600
+#define HEIGHT 900
 
 
 class App : public SimpleRender {
@@ -79,6 +79,7 @@ class App : public SimpleRender {
 
     void drawImGui() {
       ImGui::Begin("Debug Menu");
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Mouse: [x=%.2f|y=%.2f]", prevMousePos.x, prevMousePos.y);
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransX: %.2f", transX);
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransY: %.2f", transY);
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransZ: %.2f", transZ);
@@ -133,7 +134,7 @@ class App : public SimpleRender {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
 
-        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
+        BufferData buffer = CreateBuffer::dynamic_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
         buffer.texture = new Texture("./textures/615-checkerboard.png");
         bufferData.push_back(buffer);;
       }
@@ -156,7 +157,7 @@ class App : public SimpleRender {
           3, 2, 1
         };
 
-        BufferData buffer = CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
+        BufferData buffer = CreateBuffer::dynamic_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
         buffer.texture = new Texture("./textures/texture.png");
         bufferData.push_back(buffer);
       }

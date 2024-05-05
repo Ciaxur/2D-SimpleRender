@@ -31,7 +31,11 @@ class BufferData {
     // Bound shader program on this buffer.
     std::shared_ptr<Shader> shader;
 
+    // Copy of the buffer data.
+    GLfloat *data_ptr;
 
+
+  public:
     /* Default Constructor: Initialize everything to 0 */
     BufferData();
 
@@ -42,13 +46,25 @@ class BufferData {
     *	@param _vao - Vertex Array Object that is bound to the Attributes
     *		as well as the Vertex Buffer
     */
-    BufferData(GLuint &, GLuint &, GLuint &);
+    BufferData(GLuint&, GLuint&, GLuint&);
+
+    /* Updates the buffer data store with the current instance's data */
+    void update();
 
     /* Method that frees up used Memory */
-    static void freeBufferData(BufferData *);
+    static void freeBufferData(BufferData*);
 };
 
 namespace CreateBuffer {
-  /* Creates a StaticDraw Float Buffer */
+  /* Creates a float Buffer with a given buffer usage (https://docs.gl/gl4/glBufferData) */
+  inline BufferData float_buffer(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage);
+
+  /* Creates a Static Draw float Buffer */
 	BufferData static_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
+
+  /* Creates a Stream Draw float Buffer */
+	BufferData stream_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
+
+  /* Creates a Dynamnic Draw float Buffer */
+	BufferData dynamic_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
 };
