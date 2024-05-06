@@ -20,6 +20,11 @@
  *
  */
 class BufferData {
+  public:
+    GLsizei stride;           // Stride to next vertex.
+    GLfloat *data_ptr;        // Copy of the buffer data.
+    GLsizei data_size_bytes;        // Size of the buffer data.
+
   public:                     // Public Variables
     GLuint VAO;               // Vertex Array Object
     GLuint verticiesBuffer;   // Vertex Buffer
@@ -30,10 +35,6 @@ class BufferData {
     // Shared pointer to a shader since there could be multiple references.
     // Bound shader program on this buffer.
     std::shared_ptr<Shader> shader;
-
-    // Copy of the buffer data.
-    GLfloat *data_ptr;
-
 
   public:
     /* Default Constructor: Initialize everything to 0 */

@@ -1,5 +1,7 @@
 // Engine Libraries
-#include "includes/SimpleRender.h"
+#include "SimpleRender.h"
+#include "Entity.h"
+#include "Rectangle.h"
 
 // Helper Libraries
 #include <spdlog/spdlog.h>
@@ -23,6 +25,9 @@ class App : public SimpleRender {
     float transY  = 0.0f;
     float transZ  = 1.0f;
     float near    = 1.0f;
+
+    std::vector<Entity> entities = {};
+
 
     void onKey(int key, int scancode, int action, int mods) {
       float offset = 0.01f;
@@ -115,54 +120,37 @@ class App : public SimpleRender {
 
     /* Configure/Load Data that will be used in Application */
     void Preload() {
-      // Setting Up Verticies
+      // Setting up entities.
       {
-        GLfloat verticies[] = {
-          // VERTEX<vec3>		  RGBA<vec4>					      // Texture Coordinates<vec2>
-          0.2f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-          0.2f,  0.5f, 0.0f,  0.0f, 1.0f, 0.0f, 1.0f,   0.0f, 1.0f,
-          0.8f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-          0.8f, -0.5f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f
-        };
-
-        GLuint indicies[] = {
-          3, 0, 1,
-          3, 2, 1
-        };
-
         // Custom shader.
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
 
-        BufferData buffer = CreateBuffer::dynamic_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
-        buffer.texture = new Texture("./textures/615-checkerboard.png");
-        bufferData.push_back(buffer);;
+        Rectangle r{
+          (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
+          400.f, 350.f,
+          shader,
+          "./textures/615-checkerboard.png"
+        };
+        Entity e = (Entity&)(r);
+        this->entities.push_back(e);
       }
 
-      // Verticies 2
       {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader.frag");
 
-        GLfloat verticies[] = {
-          // VERTEX<vec3>		    RGBA<vec4>					      // Texture Coordinates<vec2>
-          -0.8f, -0.5f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-          -0.8f,  0.5f,  0.0f,  0.0f, 1.0f, 0.0f, 1.0f,   0.0f, 1.0f,
-          -0.2f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-          -0.2f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f, 1.0f,   1.0f, 0.0f
+        Rectangle r{
+          (WIDTH / 2.f) + - 450.f, HEIGHT / 3.f,
+          400.f, 350.f,
+          shader,
+          "./textures/texture.png"
         };
-
-        GLuint indicies[] = {
-          3, 0, 1,
-          3, 2, 1
-        };
-
-        BufferData buffer = CreateBuffer::dynamic_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
-        buffer.texture = new Texture("./textures/texture.png");
-        bufferData.push_back(buffer);
+        Entity e = (Entity&)(r);
+        this->entities.push_back(e);
       }
 
-      spdlog::info("Loaded buffers -> {}", bufferData.size());
+      spdlog::info("Loaded entities -> {}", this->entities.size());
 
       // Display some Internal Info
       int nrAttribs;
@@ -209,40 +197,49 @@ class App : public SimpleRender {
       glfwSetWindowTitle(window, titleBuffer);
 
 
-      // Draw From the Buffer
-      for (BufferData& bd : bufferData) {
-        // Activate the bound shader program.
-        bd.shader->use();
+      // Translate them entities.
+      double gl_time = glfwGetTime();
+      glm::vec2 trans{sin(gl_time), 0.f};
 
-        // Pass in the uniform values into each of the vertex shader programs.
-        updateUniforms(bd.shader.get());
+      // Draw entities.
+      for (Entity &entity : this->entities) {
+        entity.translate(trans);
+        entity.update();
 
-        // Enable aPos Attribute
-        glEnableVertexAttribArray(0);
+        for (BufferData bd : entity.buffers) {
+          // Activate the bound shader program.
+          bd.shader->use();
 
-        // Bind Vertex Array Object
-        glBindVertexArray(bd.VAO);
+          // Pass in the uniform values into each of the vertex shader programs.
+          updateUniforms(bd.shader.get());
 
-        // Bind Index Buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
+          // Enable aPos Attribute
+          glEnableVertexAttribArray(0);
 
-        // Bind the Texture
-        if (bd.texture) bd.texture->bind(0);
+          // Bind Vertex Array Object
+          glBindVertexArray(bd.VAO);
 
-        // Draw
-        glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
+          // Bind Index Buffer
+          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
 
-        // Unbind the Texture
-        if (bd.texture) bd.texture->unbind();
+          // Bind the Texture
+          if (bd.texture) bd.texture->bind(0);
 
-        // Disable aPos Attribute
-        glDisableVertexAttribArray(0);
+          // Draw
+          glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
 
-        // Deactivate shader program.
-        glUseProgram(0);
+          // Unbind the Texture
+          if (bd.texture) bd.texture->unbind();
 
-        // Live update each shader on mod.
-        if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
+          // Disable aPos Attribute
+          glDisableVertexAttribArray(0);
+
+          // Deactivate shader program.
+          glUseProgram(0);
+
+          // Live update each shader on mod.
+          if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
+        }
       }
     }
 };

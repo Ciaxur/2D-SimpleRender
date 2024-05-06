@@ -3,7 +3,7 @@ CC := g++
 COMPILER_MACROS = -D SPDLOG_COMPILED_LIB
 OPTIMIZATIONS := -O3
 FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall $(COMPILER_MACROS) $(OPTIMIZATIONS)
-INCLUDES := -I ./dependencies -I ./dependencies/stb_image -I ./dependencies/spdlog/include -I ./dependencies/imgui
+INCLUDES := -I ./dependencies -I ./dependencies/stb_image -I ./dependencies/spdlog/include -I ./dependencies/imgui -I ./src/includes/ -I $(wildcard ./src/includes/**/)
 
 # ImGUI backend source paths
 IMGUI_PATH := ./dependencies/imgui
@@ -15,7 +15,7 @@ SPDLOG_PATH := ./dependencies/spdlog
 SPDLOG_SRCS := $(wildcard $(SPDLOG_PATH)/src/*.cpp)
 
 # Source files
-SRCS := $(wildcard ./src/**/*.cc ./src/*.cc) $(IMGUI_SRCS) $(SPDLOG_SRCS)
+SRCS := $(wildcard ./src/**/*.cc ./src/**/**/*.cc ./src/*.cc) $(IMGUI_SRCS) $(SPDLOG_SRCS)
 _OBJS := $(SRCS:.cc=.o)
 OBJS := $(_OBJS:.cpp=.o)
 

@@ -46,7 +46,7 @@ void BufferData::update() {
   glNamedBufferSubData(
     this->verticiesBuffer,
     0,
-    sizeof(this->data_ptr),
+    this->data_size_bytes,
     this->data_ptr
   );
 }
@@ -70,8 +70,9 @@ void BufferData::update() {
  * @param programID - Program ID of Compiled Shaders
  * @return BufferData Object with the Object Reference IDs stored
  */
-
 inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage) {
+  GLsizei vertexStride = 9;
+
   /* 0. Allocate Verticies Buffer Object on GPU */
   GLuint VAO;                  // Vertex Array Object (Binds Vertex Buffer with the Attributes Specified)
   GLuint vBuffer;              // Vertex Buffer
@@ -98,12 +99,12 @@ inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GL
   glBufferData(GL_ARRAY_BUFFER, vSize, dataPack, buffer_usage);
   glEnableVertexAttribArray(0);  // Enable aPos Attribute
   glVertexAttribPointer(
-    0,                    // Which Index Attribute to Configure (At Location 0, aPos)
-    3,                    // There are Values per Vertex (x,y,z)
-    GL_FLOAT,             // Type of Data in the Array
-    GL_FALSE,             // Normalize?
-    9 * sizeof(GL_FLOAT), // Stride till next Vertex
-    (void*)0              // Pointer to the Beginning position in the Buffer
+    0,                                  // Which Index Attribute to Configure (At Location 0, aPos)
+    3,                                  // There are Values per Vertex (x,y,z)
+    GL_FLOAT,                           // Type of Data in the Array
+    GL_FALSE,                           // Normalize?
+    vertexStride * sizeof(GL_FLOAT),    // Stride till next Vertex
+    (void*)0                            // Pointer to the Beginning position in the Buffer
   );
 
 
@@ -127,13 +128,15 @@ inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GL
   /* 5. Object is ready to be Drawn */
   BufferData data(vBuffer, iBuffer, VAO);             // Create data Reference Object
   data.indiciesElts = iSize / sizeof(indicies[0]);    // Store Number of Indicies
+  data.stride = vertexStride;
 
   // Keep track of the applied shader so that it doesn't get deallocated while in use.
   data.shader = shader;
 
   // Store a copy of the data.
-  data.data_ptr = new GLfloat[vSize];
-  memcpy(data.data_ptr, dataPack, vSize);
+  data.data_size_bytes = vSize;
+  data.data_ptr = new GLfloat[data.data_size_bytes / sizeof(GL_FLOAT)];
+  memcpy(data.data_ptr, dataPack, data.data_size_bytes);
 
   return data;
 }
