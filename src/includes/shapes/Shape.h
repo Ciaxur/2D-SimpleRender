@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 
 // Graphics libraries.
 #include <glm/glm.hpp>
@@ -16,6 +17,19 @@ class Shape {
 
   public:
     BufferData buffer;
+
+  protected:
+    /* Internal helper function which returns the buffer's length. **/
+    inline double get_buffer_length();
+
+    /**
+     * Internal helper function which applies a change to the internal buffer
+     * by calling the given function on the vec3 vertex slice wrapped in a origin
+     * translation.
+     *
+     * @param fn Function called to apply a change on the vertex argument.
+    */
+    void iter_buffer(std::function<glm::vec3 (glm::vec3&)>);
 
   public:
     Shape();
@@ -52,6 +66,17 @@ class Shape {
      */
     void rotate(const float);
 
+    /**
+     * Scales the shape by the given vector.
+     *
+     * @param scale vec2 scale factor.
+     */
+    void scale(const glm::vec2&);
+
     /** Updates entity state */
     void update();
+
+    // TODO:
+    // void update_texture();
+    // void set_color();
 };

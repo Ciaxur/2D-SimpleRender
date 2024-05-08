@@ -212,6 +212,7 @@ class App : public SimpleRender {
 
         entity->translate(trans);
         entity->rotate(0.01f);
+        entity->scale(glm::vec2{ 1.f + (float)(sin(gl_time) * 0.0015f) });
         entity->update();
 
         // Activate the bound shader program.
