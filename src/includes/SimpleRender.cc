@@ -245,7 +245,7 @@ void SimpleRender::drawImGui() {
  ***********************************************************
  */
 
-SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h) {
+SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h), bufferData({}) {
   this->title = title;
   InitRender();
 }

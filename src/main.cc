@@ -1,6 +1,6 @@
 // Engine Libraries
 #include "SimpleRender.h"
-#include "Entity.h"
+#include "Shape.h"
 #include "Rectangle.h"
 
 // Helper Libraries
@@ -26,7 +26,7 @@ class App : public SimpleRender {
     float transZ  = 1.0f;
     float near    = 1.0f;
 
-    std::vector<Entity> entities = {};
+    std::vector<Shape*> entities = {};
 
 
     void onKey(int key, int scancode, int action, int mods) {
@@ -111,9 +111,12 @@ class App : public SimpleRender {
 
   public:
     App(unsigned int width, unsigned int height, const char* title)
-      : SimpleRender(width, height, title) {
-        this->bufferData.clear();
-      }
+      :SimpleRender(width, height, title) {}
+
+    ~App() {
+      for (Shape *s : this->entities)
+        if (s) delete s;
+    }
 
     void enableLiveShaderUpdate() { shaderUpdateActive = true; }
     void disableLiveShaderUpdate() { shaderUpdateActive = false; }
@@ -126,13 +129,14 @@ class App : public SimpleRender {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
 
-        Rectangle r{
+        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
           (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
           "./textures/615-checkerboard.png"
-        };
-        Entity e = (Entity&)(r);
+        });
+
+        e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
       }
 
@@ -140,13 +144,14 @@ class App : public SimpleRender {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader.frag");
 
-        Rectangle r{
+        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
           (WIDTH / 2.f) + - 450.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
           "./textures/texture.png"
-        };
-        Entity e = (Entity&)(r);
+        });
+
+        e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
       }
 
@@ -202,44 +207,45 @@ class App : public SimpleRender {
       glm::vec2 trans{sin(gl_time), 0.f};
 
       // Draw entities.
-      for (Entity &entity : this->entities) {
-        entity.translate(trans);
-        entity.update();
+      for (Shape *entity : this->entities) {
+        const BufferData &bd = entity->buffer;
 
-        for (BufferData bd : entity.buffers) {
-          // Activate the bound shader program.
-          bd.shader->use();
+        entity->translate(trans);
+        entity->rotate(0.01f);
+        entity->update();
 
-          // Pass in the uniform values into each of the vertex shader programs.
-          updateUniforms(bd.shader.get());
+        // Activate the bound shader program.
+        bd.shader->use();
 
-          // Enable aPos Attribute
-          glEnableVertexAttribArray(0);
+        // Pass in the uniform values into each of the vertex shader programs.
+        updateUniforms(bd.shader.get());
 
-          // Bind Vertex Array Object
-          glBindVertexArray(bd.VAO);
+        // Enable aPos Attribute
+        glEnableVertexAttribArray(0);
 
-          // Bind Index Buffer
-          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
+        // Bind Vertex Array Object
+        glBindVertexArray(bd.VAO);
 
-          // Bind the Texture
-          if (bd.texture) bd.texture->bind(0);
+        // Bind Index Buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
 
-          // Draw
-          glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
+        // Bind the Texture
+        if (bd.texture) bd.texture->bind(0);
 
-          // Unbind the Texture
-          if (bd.texture) bd.texture->unbind();
+        // Draw
+        glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
 
-          // Disable aPos Attribute
-          glDisableVertexAttribArray(0);
+        // Unbind the Texture
+        if (bd.texture) bd.texture->unbind();
 
-          // Deactivate shader program.
-          glUseProgram(0);
+        // Disable aPos Attribute
+        glDisableVertexAttribArray(0);
 
-          // Live update each shader on mod.
-          if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
-        }
+        // Deactivate shader program.
+        glUseProgram(0);
+
+        // Live update each shader on mod.
+        if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
       }
     }
 };
