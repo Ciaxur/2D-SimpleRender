@@ -75,8 +75,4 @@ class Shape {
 
     /** Updates entity state */
     void update();
-
-    // TODO:
-    // void update_texture();
-    // void set_color();
 };

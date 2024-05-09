@@ -19,7 +19,8 @@ Rectangle::Rectangle(float x, float y, float width, float height, std::shared_pt
   };
 
   this->buffer = CreateBuffer::dynamic_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader);
-  this->buffer.texture = new Texture(texturePath);
+  if (texturePath)
+    this->buffer.texture = new Texture(texturePath);
 };
 
 Rectangle::~Rectangle() {}

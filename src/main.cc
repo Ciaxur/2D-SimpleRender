@@ -133,7 +133,8 @@ class App : public SimpleRender {
           (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
-          "./textures/615-checkerboard.png"
+          nullptr
+          // "./textures/615-checkerboard.png"
         });
 
         e->set_origin(e->get_center_vec());
@@ -174,10 +175,10 @@ class App : public SimpleRender {
       trans = glm::translate(trans, glm::vec3(transX, transY, 0.0f));
 
       /* Get Uniform Locations */
-      GLuint utransfrom = glGetUniformLocation(shader->ID, "transform");
-      GLint u_time = glGetUniformLocation(shader->ID, "u_time");
-      GLint u_mouse = glGetUniformLocation(shader->ID, "u_mouse");
-      GLint u_res = glGetUniformLocation(shader->ID, "u_res");
+      GLint utransfrom  = glGetUniformLocation(shader->ID, "transform");
+      GLint u_time      = glGetUniformLocation(shader->ID, "u_time");
+      GLint u_mouse     = glGetUniformLocation(shader->ID, "u_mouse");
+      GLint u_res       = glGetUniformLocation(shader->ID, "u_res");
 
       // Pass in the canvas transform.
       glUniformMatrix4fv(utransfrom, 1, GL_FALSE, glm::value_ptr(trans));
@@ -193,6 +194,16 @@ class App : public SimpleRender {
 
       // Mouse position.
       glUniform2fv(u_mouse, 1, glm::value_ptr(this->getMousePos()));
+    }
+
+    void useSolidColor(Shader *shader, glm::vec4 vertexColor) {
+      // Get uniform location for using a vertex color + flag to use it.
+      GLint uniformUseTexture   = glGetUniformLocation(shader->ID, "useTexture");
+      GLint uniformSolidColor   = glGetUniformLocation(shader->ID, "solidColor");
+
+      // Toggle using the vertex color + set the color.
+      glUniform1ui(uniformUseTexture, false);
+      glUniform4f(uniformSolidColor, vertexColor.r, vertexColor.g, vertexColor.b, vertexColor.a);
     }
 
     /* Main Draw location of Application */
@@ -232,6 +243,7 @@ class App : public SimpleRender {
 
         // Bind the Texture
         if (bd.texture) bd.texture->bind(0);
+        else useSolidColor(bd.shader.get(), glm::vec4(255.f, 0.f, 0.f, 255.f));
 
         // Draw
         glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);

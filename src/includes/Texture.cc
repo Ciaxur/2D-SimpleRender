@@ -61,6 +61,7 @@ Texture::Texture(const char* src) {
 	else {
 		textureID = 0;
 		std::cerr << "Texture: Image not Loaded in Properly!\n";
+		return;
 	}
 
 	// Free up Image Data
