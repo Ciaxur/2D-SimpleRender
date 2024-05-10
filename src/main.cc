@@ -2,6 +2,7 @@
 #include "SimpleRender.h"
 #include "Shape.h"
 #include "Rectangle.h"
+#include "Circle.h"
 
 // Helper Libraries
 #include <spdlog/spdlog.h>
@@ -133,8 +134,7 @@ class App : public SimpleRender {
           (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
-          nullptr
-          // "./textures/615-checkerboard.png"
+          "./textures/615-checkerboard.png"
         });
 
         e->set_origin(e->get_center_vec());
@@ -152,6 +152,24 @@ class App : public SimpleRender {
           "./textures/texture.png"
         });
 
+        e->set_origin(e->get_center_vec());
+        this->entities.push_back(e);
+      }
+
+      {
+        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
+
+        Shape *e = reinterpret_cast<Shape*>(new Circle{
+          (WIDTH / 2.f), (HEIGHT / 2.f) + 300.f,
+          100.f,    // radius
+          shader,
+          "./textures/615-checkerboard.png",
+          // nullptr,  // no texture
+          2000       // quality = data points
+        });
+
+        // useSolidColor(shader.get(), glm::vec4(255.f, 0.f, 0.f, 255.f));
         e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
       }

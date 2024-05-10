@@ -19,8 +19,13 @@ Shader::~Shader() { this->deleteShader(); }
  */
 
 void Shader::use() {
-  if (ready)
+  if (ready) {
     glUseProgram(ID);  // Make Sure ther IS a Valid Program ID
+
+    // Update uniform to enable the use of the texture.
+    GLint uniformUseTexture   = glGetUniformLocation(ID, "useTexture");
+    glUniform1ui(uniformUseTexture, true);
+  }
   else
     spdlog::error("Shader Struct: No Program to use!");
 }

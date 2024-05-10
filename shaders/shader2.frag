@@ -15,10 +15,10 @@ out vec4 FragColor;			// Color of Object -> Apply
 
 /* Uniform Data */
 uniform sampler2D textureSampler;
-uniform bool useTexture;     // Flag to use a texture instead of a solid color.
 uniform float u_time;
 uniform vec2 u_mouse;
 uniform vec2 u_res;
+uniform bool useTexture;     // Flag to use a texture instead of a solid color.
 uniform vec4 solidColor;
 
 

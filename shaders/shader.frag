@@ -21,7 +21,6 @@ uniform vec2 u_mouse;
 uniform vec2 u_res;
 
 
-
 void main() {
   // DEBUG: Testing out Uniform Data
   vec2 st = gl_FragCoord.xy/u_res.xy;
