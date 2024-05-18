@@ -2,7 +2,9 @@
 #include <spdlog/spdlog.h>
 
 Shape::Shape(): origin(0.f) {}
-Shape::~Shape() {}
+Shape::~Shape() {
+  this->buffer.freeBufferData(&this->buffer);
+}
 
 void Shape::set_origin(glm::vec3 origin) {
   this->origin = origin;
@@ -13,13 +15,13 @@ glm::vec3 Shape::get_origin() {
 }
 
 inline double Shape::get_buffer_length() {
-  return this->buffer.data_size_bytes / sizeof(GL_FLOAT);
+  return this->buffer.vertex_buffer_size_bytes / sizeof(GLdouble);
 }
 
 void Shape::translate(const glm::vec2 &t) {
   for (size_t i = 0; i < this->get_buffer_length(); i += buffer.stride) {
-    buffer.data_ptr[i]      += t.x;
-    buffer.data_ptr[i + 1]  += t.y;
+    buffer.vertex_buffer_ptr[i]      += t.x;
+    buffer.vertex_buffer_ptr[i + 1]  += t.y;
   }
 
   // Update origin to reflect translation.
@@ -33,9 +35,9 @@ void Shape::iter_buffer(std::function<glm::vec3(glm::vec3&)> fn) {
 
   for (size_t i = 0; i < this->get_buffer_length(); i += buffer.stride) {
     const glm::vec3 vertex {
-      buffer.data_ptr[i],
-      buffer.data_ptr[i + 1],
-      buffer.data_ptr[i + 2]
+      buffer.vertex_buffer_ptr[i],
+      buffer.vertex_buffer_ptr[i + 1],
+      buffer.vertex_buffer_ptr[i + 2]
     };
 
     // Sprinkle some math magic.
@@ -49,9 +51,9 @@ void Shape::iter_buffer(std::function<glm::vec3(glm::vec3&)> fn) {
     result = glm::vec3( pop_translate_to_origin * glm::vec4(result, 1.f) );
 
     // Update inner data buffer.
-    buffer.data_ptr[i]      = result.x;
-    buffer.data_ptr[i + 1]  = result.y;
-    buffer.data_ptr[i + 2]  = result.z;
+    buffer.vertex_buffer_ptr[i]      = result.x;
+    buffer.vertex_buffer_ptr[i + 1]  = result.y;
+    buffer.vertex_buffer_ptr[i + 2]  = result.z;
   }
 }
 

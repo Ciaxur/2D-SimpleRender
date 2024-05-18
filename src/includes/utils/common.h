@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <vector>
+
 /**
  * Normalizes a given value from one range to another range.
  *
@@ -11,4 +14,12 @@
  *
  * @returns Old value mapped to the new range.
 */
-float normalizeFloat(const float v, const float oldMin, const float oldMax, const float newMin, const float newMax);
+double normalizeFloat(const double v, const double oldMin, const double oldMax, const double newMin, const double newMax);
+
+
+/**
+ * Finds the mindpoint of any given polygon shape, given an array of vertices.
+ *
+ * @param vertices Array of vertices.
+*/
+glm::vec2 findMidpoint(std::vector<glm::vec2>);

@@ -18,7 +18,8 @@ BufferData::BufferData() {
   this->indiciesBuffer = 0;
   this->texture = nullptr;
   this->shader = nullptr;
-  this->data_ptr = nullptr;
+  this->vertex_buffer_ptr = nullptr;
+  this->index_buffer_ptr = nullptr;
 }
 
 BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao) {
@@ -27,7 +28,8 @@ BufferData::BufferData(GLuint& _vertBuffer, GLuint& _indBuffer, GLuint& _vao) {
   this->indiciesBuffer = _indBuffer;
   this->texture = nullptr;
   this->shader = nullptr;
-  this->data_ptr = nullptr;
+  this->vertex_buffer_ptr = nullptr;
+  this->index_buffer_ptr = nullptr;
 }
 
 void BufferData::freeBufferData(BufferData* buffer) {
@@ -38,16 +40,26 @@ void BufferData::freeBufferData(BufferData* buffer) {
   if (buffer->texture)
     delete buffer->texture;
 
-  if (buffer->data_ptr)
-    delete[] buffer->data_ptr;
+  if (buffer->vertex_buffer_ptr)
+    delete[] buffer->vertex_buffer_ptr;
+
+  if (buffer->index_buffer_ptr)
+    delete[] buffer->index_buffer_ptr;
 }
 
 void BufferData::update() {
   glNamedBufferSubData(
     this->verticiesBuffer,
     0,
-    this->data_size_bytes,
-    this->data_ptr
+    this->vertex_buffer_size_bytes,
+    this->vertex_buffer_ptr
+  );
+
+  glNamedBufferSubData(
+    this->indiciesBuffer,
+    0,
+    this->index_buffer_size_bytes,
+    this->index_buffer_ptr
   );
 }
 
@@ -70,7 +82,7 @@ void BufferData::update() {
  * @param programID - Program ID of Compiled Shaders
  * @return BufferData Object with the Object Reference IDs stored
  */
-inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage) {
+inline BufferData CreateBuffer::float_buffer(GLdouble* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage) {
   GLsizei vertexStride = 9;
 
   /* 0. Allocate Verticies Buffer Object on GPU */
@@ -101,9 +113,9 @@ inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GL
   glVertexAttribPointer(
     0,                                  // Which Index Attribute to Configure (At Location 0, aPos)
     3,                                  // There are Values per Vertex (x,y,z)
-    GL_FLOAT,                           // Type of Data in the Array
+    GL_DOUBLE,                           // Type of Data in the Array
     GL_FALSE,                           // Normalize?
-    vertexStride * sizeof(GL_FLOAT),    // Stride till next Vertex
+    vertexStride * sizeof(GLdouble),    // Stride till next Vertex
     (void*)0                            // Pointer to the Beginning position in the Buffer
   );
 
@@ -117,12 +129,12 @@ inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GL
   /* 3. Configure RGB Attribute */
   GLuint aRGBA = glGetAttribLocation(shader->ID, "aRGBA");
   glEnableVertexAttribArray(aRGBA);
-  glVertexAttribPointer(aRGBA, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(3 * sizeof(float)));
+  glVertexAttribPointer(aRGBA, 4, GL_DOUBLE, GL_FALSE, 9 * sizeof(GLdouble), (void*)(3 * sizeof(GLdouble)));
 
   /* 4. Configure Texture Coordinates Attribute */
   GLuint aTextCoord = glGetAttribLocation(shader->ID, "aTextCoord");
   glEnableVertexAttribArray(aTextCoord);
-  glVertexAttribPointer(aTextCoord, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(7 * sizeof(float)));
+  glVertexAttribPointer(aTextCoord, 2, GL_DOUBLE, GL_FALSE, 9 * sizeof(GLdouble), (void*)(7 * sizeof(GLdouble)));
 
 
   /* 5. Object is ready to be Drawn */
@@ -134,21 +146,25 @@ inline BufferData CreateBuffer::float_buffer(GLfloat* dataPack, size_t vSize, GL
   data.shader = shader;
 
   // Store a copy of the data.
-  data.data_size_bytes = vSize;
-  data.data_ptr = new GLfloat[data.data_size_bytes / sizeof(GL_FLOAT)];
-  memcpy(data.data_ptr, dataPack, data.data_size_bytes);
+  data.vertex_buffer_size_bytes = vSize;
+  data.vertex_buffer_ptr        = new GLdouble[data.vertex_buffer_size_bytes / sizeof(GLdouble)];
+  memcpy(data.vertex_buffer_ptr, dataPack, data.vertex_buffer_size_bytes);
+
+  data.index_buffer_size_bytes  = iSize;
+  data.index_buffer_ptr         = new GLuint[data.index_buffer_size_bytes / sizeof(GLuint)];
+  memcpy(data.index_buffer_ptr, indicies, data.index_buffer_size_bytes);
 
   return data;
 }
 
-BufferData CreateBuffer::static_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+BufferData CreateBuffer::static_float(GLdouble* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
   return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_STATIC_DRAW);
 }
 
-BufferData CreateBuffer::stream_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+BufferData CreateBuffer::stream_float(GLdouble* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
   return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_STREAM_DRAW);
 }
 
-BufferData CreateBuffer::dynamic_float(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
+BufferData CreateBuffer::dynamic_float(GLdouble* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader) {
   return float_buffer(dataPack, vSize, indicies, iSize, shader, GL_DYNAMIC_DRAW);
 }

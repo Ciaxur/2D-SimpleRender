@@ -5,7 +5,7 @@
 
 class Circle: protected Shape {
   private:
-    float radius;
+    double radius;
 
   public:
     /**
@@ -18,7 +18,7 @@ class Circle: protected Shape {
      * @param texturePath Optional path to the shape texture
      * @param quality Number of points to generate for the circle
     */
-    Circle(float, float, float, std::shared_ptr<Shader>, const char*, size_t);
+    Circle(double, double, double, std::shared_ptr<Shader>, const char*, size_t);
     ~Circle();
 
   glm::vec3 get_center_vec();

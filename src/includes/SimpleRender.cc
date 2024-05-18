@@ -178,7 +178,7 @@ void SimpleRender::Preload() {
   shader->compile("Shaders/shader.vert", "Shaders/shader.frag");
 
   // Create Object1
-  GLfloat verticies[] = {
+  GLdouble verticies[] = {
     // Positions<vec3>		RGBA<vec4>					// Texture Coordinates<vec2>
     -0.4f, -0.2f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
     -0.2f, -0.2f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f,
@@ -198,7 +198,7 @@ void SimpleRender::Preload() {
 
 
   // Create Object2
-  GLfloat verticies2[] = {
+  GLdouble verticies2[] = {
     // Positions<vec3>		RGB<vec4>					// Texture Coordinates<vec2>
     0.0f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,   // Bottom-Left
     0.4f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,   // Bottom-Right
@@ -332,6 +332,8 @@ int SimpleRender::run() {
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init("#version 150");  // GLSL 3.2+
 
+  const char* opengl_version = (const char*)(glGetString(GL_VERSION));
+  if (opengl_version) spdlog::info("Using OpenGL Version: {}", opengl_version);
 
   /* Keep track of FPS & Fixed Upate */
   double lastTime = glfwGetTime();

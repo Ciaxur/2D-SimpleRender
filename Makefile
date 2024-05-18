@@ -3,7 +3,15 @@ CC := g++
 COMPILER_MACROS = -D SPDLOG_COMPILED_LIB
 OPTIMIZATIONS := -O3
 FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall $(COMPILER_MACROS) $(OPTIMIZATIONS)
-INCLUDES := $(patsubst %,-I%, ./dependencies ./dependencies/stb_image ./dependencies/spdlog/include ./dependencies/imgui ./src/includes/ $(wildcard ./src/includes/**/) )
+INCLUDES := $(patsubst %,-I%, \
+	./dependencies \
+	./dependencies/glm/ \
+	./dependencies/stb_image \
+	./dependencies/spdlog/include \
+	./dependencies/imgui \
+	./src/includes/ \
+	$(wildcard ./src/includes/**/) \
+)
 
 
 # ImGUI backend source paths

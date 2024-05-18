@@ -5,13 +5,13 @@
 
 #define MIN_QUALITY_LIMIT 200
 
-Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const char* texturePath, size_t quality = 200) {
+Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, const char* texturePath, size_t quality = 200) {
   // Ensure we hit the minimum quality requirement.
   assert( quality >= MIN_QUALITY_LIMIT );
-  constexpr float HALF_PI               = glm::half_pi<float>();
-  constexpr float PI                    = glm::pi<float>();
-  constexpr float THREE_OVER_TWO_PI     = glm::three_over_two_pi<float>();
-  constexpr float TWO_PI                = glm::two_pi<float>();
+  constexpr double HALF_PI               = glm::half_pi<double>();
+  constexpr double PI                    = glm::pi<double>();
+  constexpr double THREE_OVER_TWO_PI     = glm::three_over_two_pi<double>();
+  constexpr double TWO_PI                = glm::two_pi<double>();
 
   // Include an additional point in the middle, which is used to link indicies.
   const size_t _quality = quality + 1;
@@ -25,14 +25,14 @@ Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const 
     // vec2 texture coordinates
     _quality * 2
   );
-  const size_t INDICIDES_ARRAY_SIZE = _quality * 3;
+  const size_t INDICIES_ARRAY_SIZE = _quality * 3;
 
   // Calculate the min and max positional values. This is used to map textures onto the
   // verticies.
-  const float max_x = x + ( r * glm::cos(0) );
-  const float min_x = x + ( r * glm::cos(PI) );
-  const float max_y = y + ( r * glm::sin(HALF_PI) );
-  const float min_y = y + ( r * glm::sin(THREE_OVER_TWO_PI) );
+  const double max_x = x + ( r * glm::cos(0) );
+  const double min_x = x + ( r * glm::cos(PI) );
+  const double max_y = y + ( r * glm::sin(HALF_PI) );
+  const double min_y = y + ( r * glm::sin(THREE_OVER_TWO_PI) );
 
   // Origin is the center of the circle.
   this->radius = r;
@@ -44,8 +44,8 @@ Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const 
 
   // Allocate vertex & index buffer. Index buffer has 3 data points cause
   // triangles.
-  GLfloat *verticies  = new GLfloat[VERTEX_ARRAY_SIZE];
-  GLuint  *indicies   = new GLuint[INDICIDES_ARRAY_SIZE];
+  GLdouble *verticies  = new GLdouble[VERTEX_ARRAY_SIZE];
+  GLuint  *indicies   = new GLuint[INDICIES_ARRAY_SIZE];
 
   // Add initial data point in the center of the circle.
   verticies[v_index]      = x;
@@ -78,15 +78,15 @@ Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const 
   v_index += 9;
 
   // Now generate circle data points.
-  float v = 0.f;
-  float circle_percision = TWO_PI / quality;
+  double v = 0.f;
+  double circle_percision = TWO_PI / quality;
 
   // Offset by the vertex stride.
   for (; v_index < VERTEX_ARRAY_SIZE; v_index += 9) {
     v += circle_percision;
 
-    const float _x = ( glm::cos(v) * r ) + x;
-    const float _y = ( glm::sin(v) * r ) + y;
+    const double _x = ( glm::cos(v) * r ) + x;
+    const double _y = ( glm::sin(v) * r ) + y;
 
     // Coordinates.
     verticies[v_index]      = _x;
@@ -107,8 +107,8 @@ Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const 
   // Generate the indicies to map the center of the circle to 2 points across the
   // circle's arc.
   size_t value = 1;
-  for (size_t i = 0; i < INDICIDES_ARRAY_SIZE; i++) indicies[i] = 0;
-  for (size_t i = 0; i <= INDICIDES_ARRAY_SIZE - 3; i+=3) {
+  for (size_t i = 0; i < INDICIES_ARRAY_SIZE; i++) indicies[i] = 0;
+  for (size_t i = 0; i <= INDICIES_ARRAY_SIZE - 3; i+=3) {
     indicies[i    ] = 0;
     indicies[i + 1] = value++;
 
@@ -119,9 +119,9 @@ Circle::Circle(float x, float y, float r, std::shared_ptr<Shader> shader, const 
 
   this->buffer = CreateBuffer::dynamic_float(
     verticies,
-    VERTEX_ARRAY_SIZE * sizeof(GLfloat),
+    VERTEX_ARRAY_SIZE * sizeof(GLdouble),
     indicies,
-    INDICIDES_ARRAY_SIZE * sizeof(GLuint),
+    INDICIES_ARRAY_SIZE * sizeof(GLuint),
     shader
   );
   if (texturePath)

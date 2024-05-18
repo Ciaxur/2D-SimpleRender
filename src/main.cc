@@ -3,6 +3,7 @@
 #include "Shape.h"
 #include "Rectangle.h"
 #include "Circle.h"
+#include "Polygon.h"
 
 // Helper Libraries
 #include <spdlog/spdlog.h>
@@ -22,28 +23,32 @@ class App : public SimpleRender {
     bool shaderUpdateActive = false;
     bool trackMouseMove = false;
     glm::vec2 prevMousePos = glm::vec2();
-    float transX  = 0.0f;
-    float transY  = 0.0f;
-    float transZ  = 1.0f;
-    float near    = 1.0f;
+
+    // Zoom percent offset.
+    const double transZ_percent_offset = 0.05; // 5%
+
+    double transX  = 0.0f;
+    double transY  = 0.0f;
+    double transZ  = 1.0f;
+    double near    = 1.0f;
 
     std::vector<Shape*> entities = {};
 
 
     void onKey(int key, int scancode, int action, int mods) {
-      float offset = 0.01f;
+      double offset = 0.01f;
 
       // Adjust Transformation
       if (action == GLFW_REPEAT || action == GLFW_PRESS) {
         if (key == GLFW_KEY_LEFT)
-          transX -= offset;
-        else if (key == GLFW_KEY_RIGHT)
           transX += offset;
+        else if (key == GLFW_KEY_RIGHT)
+          transX -= offset;
 
         else if (key == GLFW_KEY_UP)
-          transY += offset;
-        else if (key == GLFW_KEY_DOWN)
           transY -= offset;
+        else if (key == GLFW_KEY_DOWN)
+          transY += offset;
 
         else if (key == GLFW_KEY_Q)
           glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -77,35 +82,67 @@ class App : public SimpleRender {
 
     void onMouseScroll(double xOffset, double yOffset) {
       // Zoom in/out by Transforming Z-Axis
+      const double zoom_offset = (transZ * transZ_percent_offset);
+
       if (yOffset > 0.0f)
-        transZ -= 0.05f;
+        transZ -= zoom_offset;
       else if (yOffset < 0.0f)
-        transZ += 0.05f;
+        transZ += zoom_offset;
     }
 
     void drawImGui() {
+      constexpr ImVec4 TEXT_PURPLE_COLOR = ImVec4(1.0f, 0.5f, 1.0f, 1.0f);
+
       ImGui::Begin("Debug Menu");
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Mouse: [x=%.2f|y=%.2f]", prevMousePos.x, prevMousePos.y);
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransX: %.2f", transX);
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransY: %.2f", transY);
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "TransZ: %.2f", transZ);
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "FPS: %.2f", this->getFPS());
+      {
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "Mouse: [x=%.2f|y=%.2f]", prevMousePos.x, prevMousePos.y);
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "TransX: %.2f", transX);
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "TransY: %.2f", transY);
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "TransZ: %.2f", transZ);
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "FPS: %.2f", this->getFPS());
+      }
 
       // Window dimensions.
-      int width, height;
-      glfwGetWindowSize(this->getWindow(), &width, &height);
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Window: %dx%d", width, height);
+      {
+        int width, height;
+        glfwGetWindowSize(this->getWindow(), &width, &height);
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "Window: %dx%d", width, height);
+      }
 
-      ImGui::BeginGroup();
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 1.0f, 1.0f), "Near: %.2f", near);
-      ImGui::SameLine();
-      if (ImGui::SmallButton("-"))
-        near -= 0.01f;
-      ImGui::SameLine();
+      // Transformation
+      {
+        ImGui::BeginGroup();
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "Near: %.2f", near);
+        ImGui::SameLine();
+        if (ImGui::SmallButton("-"))
+          near -= 0.01f;
+        ImGui::SameLine();
 
-      if (ImGui::SmallButton("+"))
-        near += 0.01f;
-      ImGui::EndGroup();
+        if (ImGui::SmallButton("+"))
+          near += 0.01f;
+        ImGui::EndGroup();
+      }
+
+      // Rasterization modes.
+      {
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "Rasterization: ");
+
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Point")) {
+          glPolygonMode(GL_FRONT, GL_POINT);
+          glPolygonMode(GL_BACK, GL_POINT);
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Line")) {
+          glPolygonMode(GL_FRONT, GL_LINE);
+          glPolygonMode(GL_BACK, GL_LINE);
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton("Fill")) {
+          glPolygonMode(GL_FRONT, GL_FILL);
+          glPolygonMode(GL_BACK, GL_FILL);
+        }
+      }
 
       ImGui::End();
     }
@@ -153,6 +190,29 @@ class App : public SimpleRender {
         });
 
         e->set_origin(e->get_center_vec());
+        this->entities.push_back(e);
+      }
+
+      {
+        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
+
+        double x = (WIDTH / 2.f);
+        double y = (HEIGHT / 2.f) - 200.f;
+        Shape *e = reinterpret_cast<Shape*>(new Polygon{
+          {
+            {x,           y},
+            {x + 100.0,   y},
+            {x + 100.0,   y - 200.0},
+            {x,           y - 100.0},
+            {x + 100.0,   y - 100.0},
+            {x + 200.0,   y - 100.0}
+          },
+          shader,
+          "./textures/615-checkerboard.png",
+        });
+
+        // e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
       }
 
@@ -241,7 +301,7 @@ class App : public SimpleRender {
 
         entity->translate(trans);
         entity->rotate(0.01f);
-        entity->scale(glm::vec2{ 1.f + (float)(sin(gl_time) * 0.0015f) });
+        entity->scale(glm::vec2{ 1.f + (float)sin(gl_time) * 0.0015f });
         entity->update();
 
         // Activate the bound shader program.

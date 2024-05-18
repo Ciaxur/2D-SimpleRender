@@ -22,8 +22,12 @@
 class BufferData {
   public:
     GLsizei stride;           // Stride to next vertex.
-    GLfloat *data_ptr;        // Copy of the buffer data.
-    GLsizei data_size_bytes;        // Size of the buffer data.
+
+    GLdouble *vertex_buffer_ptr;        // Copy of the vertex buffer data.
+    GLsizei vertex_buffer_size_bytes;   // Size of the vertex buffer data.
+
+    GLuint *index_buffer_ptr;           // Copy of the index buffer data.
+    GLsizei index_buffer_size_bytes;    // Size of the index buffer data.
 
   public:                     // Public Variables
     GLuint VAO;               // Vertex Array Object
@@ -58,14 +62,14 @@ class BufferData {
 
 namespace CreateBuffer {
   /* Creates a float Buffer with a given buffer usage (https://docs.gl/gl4/glBufferData) */
-  inline BufferData float_buffer(GLfloat* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage);
+  inline BufferData float_buffer(GLdouble* dataPack, size_t vSize, GLuint* indicies, size_t iSize, std::shared_ptr<Shader> shader, GLenum buffer_usage);
 
   /* Creates a Static Draw float Buffer */
-	BufferData static_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
+	BufferData static_float(GLdouble *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
 
   /* Creates a Stream Draw float Buffer */
-	BufferData stream_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
+	BufferData stream_float(GLdouble *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
 
   /* Creates a Dynamnic Draw float Buffer */
-	BufferData dynamic_float(GLfloat *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
+	BufferData dynamic_float(GLdouble *dataPack, size_t vSize, GLuint *indicies, size_t iSize, std::shared_ptr<Shader> shader);
 };

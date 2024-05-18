@@ -4,7 +4,7 @@
 
 class Rectangle: protected Shape {
   private:
-    float width, height;
+    double width, height;
 
   public:
     /**
@@ -17,7 +17,7 @@ class Rectangle: protected Shape {
      * @param shader Pointer to the shader used
      * @param texturePath Optional path to the shape texture
     */
-    Rectangle(float, float, float, float, std::shared_ptr<Shader>, const char*);
+    Rectangle(double, double, double, double, std::shared_ptr<Shader>, const char*);
     ~Rectangle();
 
     glm::vec3 get_center_vec();
