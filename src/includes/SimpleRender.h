@@ -79,7 +79,7 @@ class SimpleRender {
      * Returns the Calculated Frames Per Second from Draw Loop
      *	@returns FPS Value
     */
-    const double getFPS();
+    double getFPS() const;
 
 
 

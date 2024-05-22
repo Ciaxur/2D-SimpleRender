@@ -96,7 +96,7 @@ void SimpleRender::error_callback(int error, const char *description) {
   spdlog::error("Error[{}]: {}", error, description);
 }
 
-const double SimpleRender::getFPS() {
+double SimpleRender::getFPS() const {
   return FPS;
 }
 

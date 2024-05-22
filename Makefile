@@ -2,7 +2,7 @@ TARGET := app
 CC := g++
 COMPILER_MACROS = -D SPDLOG_COMPILED_LIB
 OPTIMIZATIONS := -O3
-FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall $(COMPILER_MACROS) $(OPTIMIZATIONS)
+FLAGS := -std=c++17 -lglfw -lGLEW -lGL -Wall -Wextra -Wno-unused-parameter $(COMPILER_MACROS) $(OPTIMIZATIONS)
 INCLUDES := $(patsubst %,-I%, \
 	./dependencies \
 	./dependencies/glm/ \

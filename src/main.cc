@@ -35,7 +35,7 @@ class App : public SimpleRender {
     std::vector<Shape*> entities = {};
 
 
-    void onKey(int key, int scancode, int action, int mods) {
+    void onKey(int key, int scancode, int action, int mods) override {
       double offset = 0.01f;
 
       // Adjust Transformation
@@ -59,7 +59,7 @@ class App : public SimpleRender {
       spdlog::info("TransX[{:.2f}] \t TransY[{:.2f}]", transX, transY);
     }
 
-    void onMouseClick(int button, int action, int mods) {
+    void onMouseClick(int button, int action, int mods) override {
       // ImGui Captured Mouse
       if (ImGui::GetIO().WantCaptureMouse) return;
 
@@ -68,7 +68,7 @@ class App : public SimpleRender {
       }
     }
 
-    void onMouse(double xPos, double yPos) {
+    void onMouse(double xPos, double yPos) override {
       // Track mouse movement IF not captured by ImGUI
       if (trackMouseMove) {
         transX -= ((prevMousePos.x - xPos) / WIDTH )  * transZ;     // Transform with respect to Z
@@ -80,7 +80,7 @@ class App : public SimpleRender {
       prevMousePos.y = yPos;
     }
 
-    void onMouseScroll(double xOffset, double yOffset) {
+    void onMouseScroll(double xOffset, double yOffset) override {
       // Zoom in/out by Transforming Z-Axis
       const double zoom_offset = (transZ * transZ_percent_offset);
 
@@ -90,7 +90,7 @@ class App : public SimpleRender {
         transZ += zoom_offset;
     }
 
-    void drawImGui() {
+    void drawImGui() override {
       constexpr ImVec4 TEXT_PURPLE_COLOR = ImVec4(1.0f, 0.5f, 1.0f, 1.0f);
 
       ImGui::Begin("Debug Menu");
@@ -160,7 +160,7 @@ class App : public SimpleRender {
     void disableLiveShaderUpdate() { shaderUpdateActive = false; }
 
     /* Configure/Load Data that will be used in Application */
-    void Preload() {
+    void Preload() override {
       // Setting up entities.
       {
         // Custom shader.
@@ -285,7 +285,7 @@ class App : public SimpleRender {
     }
 
     /* Main Draw location of Application */
-    void Draw() {
+    void Draw() override {
       // Output FPS to Window Title
       sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
       glfwSetWindowTitle(window, titleBuffer);
