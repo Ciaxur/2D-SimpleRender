@@ -4,6 +4,7 @@
 #include "Rectangle.h"
 #include "Circle.h"
 #include "Polygon.h"
+#include "ShapeFromObjFile.h"
 
 // Helper Libraries
 #include <spdlog/spdlog.h>
@@ -162,76 +163,14 @@ class App : public SimpleRender {
     /* Configure/Load Data that will be used in Application */
     void Preload() override {
       // Setting up entities.
-      {
-        // Custom shader.
-        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
-
-        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
-          (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
-          400.f, 350.f,
-          shader,
-          "./textures/615-checkerboard.png"
-        });
-
-        e->set_origin(e->get_center_vec());
-        this->entities.push_back(e);
-      }
 
       {
-        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-        shader->compile("./shaders/shader.vert", "./shaders/shader.frag");
+        // DEBUG:
+        glPolygonMode(GL_FRONT, GL_POINT);
+        glPolygonMode(GL_BACK, GL_POINT);
 
-        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
-          (WIDTH / 2.f) + - 450.f, HEIGHT / 3.f,
-          400.f, 350.f,
-          shader,
-          "./textures/texture.png"
-        });
-
-        e->set_origin(e->get_center_vec());
-        this->entities.push_back(e);
-      }
-
-      {
-        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
-
-        double x = (WIDTH / 2.f);
-        double y = (HEIGHT / 2.f) - 200.f;
-        Shape *e = reinterpret_cast<Shape*>(new Polygon{
-          {
-            {x,           y},
-            {x + 100.0,   y},
-            {x + 100.0,   y - 200.0},
-            {x,           y - 100.0},
-            {x + 100.0,   y - 100.0},
-            {x + 200.0,   y - 100.0}
-          },
-          shader,
-          "./textures/615-checkerboard.png",
-        });
-
-        // e->set_origin(e->get_center_vec());
-        this->entities.push_back(e);
-      }
-
-      {
-        std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
-
-        Shape *e = reinterpret_cast<Shape*>(new Circle{
-          (WIDTH / 2.f), (HEIGHT / 2.f) + 300.f,
-          100.f,    // radius
-          shader,
-          "./textures/615-checkerboard.png",
-          // nullptr,  // no texture
-          2000       // quality = data points
-        });
-
-        // useSolidColor(shader.get(), glm::vec4(255.f, 0.f, 0.f, 255.f));
-        e->set_origin(e->get_center_vec());
-        this->entities.push_back(e);
+        Shape *s = reinterpret_cast<Shape*>(new ShapeFromObjFile{"./assets/tinker.obj"});
+        this->entities.push_back(s);
       }
 
       spdlog::info("Loaded entities -> {}", this->entities.size());
