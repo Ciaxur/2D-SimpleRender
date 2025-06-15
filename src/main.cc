@@ -1,9 +1,14 @@
 // Engine Libraries
-#include "SimpleRender.h"
-#include "Shape.h"
-#include "Rectangle.h"
 #include "Circle.h"
 #include "Polygon.h"
+#include "Rectangle.h"
+#include "ShapeFromObjFile.h"
+#include "SimpleRender.h"
+#include "Shape.h"
+#include "glm/ext/vector_float2.hpp"
+#include "glm/gtc/constants.hpp"
+#include "imgui.h"
+#include "spdlog/fmt/bundled/format.h"
 
 // Helper Libraries
 #include <spdlog/spdlog.h>
@@ -12,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
 
 // OpenGL Macros
 #define WIDTH 1600
@@ -29,11 +35,11 @@ class App : public SimpleRender {
 
     double transX  = 0.0f;
     double transY  = 0.0f;
-    double transZ  = 1.0f;
+    double transZ  = 1.25f;
     double near    = 1.0f;
 
-    std::vector<Shape*> entities = {};
-
+    std::vector<std::shared_ptr<Shape>> entities = {};
+    std::vector<std::shared_ptr<Shape>> debug_entities = {};
 
     void onKey(int key, int scancode, int action, int mods) override {
       double offset = 0.01f;
@@ -81,6 +87,9 @@ class App : public SimpleRender {
     }
 
     void onMouseScroll(double xOffset, double yOffset) override {
+      // Skip if swallowed by imgui.
+      if ( ImGui::GetIO().WantCaptureMouse ) { return; }
+
       // Zoom in/out by Transforming Z-Axis
       const double zoom_offset = (transZ * transZ_percent_offset);
 
@@ -90,7 +99,187 @@ class App : public SimpleRender {
         transZ += zoom_offset;
     }
 
-    void drawImGui() override {
+    void draw_buffer_submenu( const std::shared_ptr<BufferData> buffer ) {
+      if ( ImGui::TreeNode( "buffer info" ) ) {
+        if ( ImGui::BeginTable( "buffer_info_table", 2 ) ) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vao.id" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%u", buffer->vao_index );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vertex.id" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%u", buffer->vertex_buffer_ptr->get_gl_buffer_index() );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vertex.stride" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%u", buffer->vertex_stride );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vertex.size" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%zu", buffer->vertex_buffer_ptr->size() );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vertex.points" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%zu", buffer->vertex_buffer_ptr->size() / buffer->vertex_stride );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "vertex.bytes" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%zu", buffer->vertex_buffer_ptr->size_in_bytes() );
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "index.size" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "%zu", buffer->index_buffer_ptr->buffers.size() );
+
+          ImGui::EndTable();
+        }
+        ImGui::TreePop();
+      }
+
+      if ( ImGui::TreeNode( "vertex.data" ) ) {
+        if ( ImGui::BeginTable( "buffer_vertex_data_table", 3 ) ) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text( "index" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "x" );
+          ImGui::TableNextColumn();
+          ImGui::Text( "y" );
+
+          for ( size_t i = 0; i < buffer->vertex_buffer_ptr->size(); i += buffer->vertex_stride ) {
+            const double x = buffer->vertex_buffer_ptr->get_buffer()[i];
+            const double y = buffer->vertex_buffer_ptr->get_buffer()[i + 1];
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Selectable(
+              fmt::format( "{}", static_cast<size_t>( i / buffer->vertex_stride ) ).c_str(), false,
+              ImGuiSelectableFlags_SpanAllColumns
+            );
+            if ( ImGui::IsItemHovered() && this->debug_entities.size() ) {
+              for ( const auto &e : this->debug_entities ) { e->set_hidden( true ); }
+              this->debug_entities[0]->set_position({ x, y, 0.0 });
+              this->debug_entities[0]->set_hidden( false );
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text( "%.2f", x );
+            ImGui::TableNextColumn();
+            ImGui::Text( "%.2f", y );
+          }
+
+          ImGui::EndTable();
+        }
+        ImGui::TreePop();
+      }
+
+      if ( ImGui::TreeNode( "index.data" ) ) {
+        for ( const auto &ibuf : buffer->index_buffer_ptr->buffers ) {
+          if ( ImGui::TreeNode( fmt::format( "buffer.id({})", ibuf->get_gl_buffer_index() ).c_str() ) ) {
+            if ( ImGui::BeginTable( fmt::format( "index_buffer_data_{}", ibuf->get_gl_buffer_index() ).c_str(), 3 ) ) {
+              for ( size_t i = 0; i < ibuf->size(); i += 3 ) {
+                const glm::vec<3, GLuint> ivec{
+                  ibuf->get_buffer()[i],
+                  ibuf->get_buffer()[i + 1],
+                  ibuf->get_buffer()[i + 2]
+                };
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+
+                // Make rows highlight-able.
+                ImGui::Selectable(
+                  fmt::format( "{}", ivec.x ).c_str(), false, ImGuiSelectableFlags_SpanAllColumns
+                );
+
+                if ( ImGui::IsItemHovered() && this->debug_entities.size() >= 3 ) {
+                  const glm::vec2 p0{
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.x * buffer->vertex_stride ) + 0],
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.x * buffer->vertex_stride ) + 1],
+                  };
+                  const glm::vec2 p1{
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.y * buffer->vertex_stride ) + 0],
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.y * buffer->vertex_stride ) + 1],
+                  };
+                  const glm::vec2 p2{
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.z * buffer->vertex_stride ) + 0],
+                    buffer->vertex_buffer_ptr->get_buffer()[( ivec.z * buffer->vertex_stride ) + 1],
+                  };
+
+                  this->debug_entities[0]->set_position( glm::vec3{ p0, 0.0 } );
+                  this->debug_entities[1]->set_position( glm::vec3{ p1, 0.0 } );
+                  this->debug_entities[2]->set_position( glm::vec3{ p2, 0.0 } );
+
+                  for ( const auto &e : this->debug_entities ) { e->set_hidden( true ); }
+                  this->debug_entities[0]->set_hidden( false );
+                  this->debug_entities[1]->set_hidden( false );
+                  this->debug_entities[2]->set_hidden( false );
+                }
+                ImGui::TableNextColumn();
+                ImGui::Text( "%u", ivec.y );
+                ImGui::TableNextColumn();
+                ImGui::Text( "%u", ivec.z );
+              }
+              ImGui::EndTable();
+            }
+
+            ImGui::TreePop();
+          }
+        }
+
+        ImGui::TreePop();
+      }
+    }
+
+    void draw_asset_menu() {
+      ImGui::Begin( "Asset Menu" );
+
+      for ( size_t i = 0 ; i < this->entities.size(); i++ ) {
+        const auto& entity = this->entities[i];
+
+        if ( ImGui::TreeNode( fmt::format( "Entity {}", i ).c_str() ) ) {
+          if ( ImGui::TreeNode( "origin" ) ) {
+            if ( ImGui::BeginTable(fmt::format( "entity_table_{}", i ).c_str(), 2) ) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("x");
+              ImGui::TableNextColumn();
+              ImGui::Text("%.2f", entity->get_origin().x);
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("y");
+              ImGui::TableNextColumn();
+              ImGui::Text("%.2f", entity->get_origin().y);
+
+              ImGui::EndTable();
+            }
+
+            ImGui::TreePop();
+          }
+
+          draw_buffer_submenu(entity->buffer);
+          ImGui::TreePop();
+        }
+      }
+
+      ImGui::End();
+    }
+
+    void draw_debug_menu() {
       constexpr ImVec4 TEXT_PURPLE_COLOR = ImVec4(1.0f, 0.5f, 1.0f, 1.0f);
 
       ImGui::Begin("Debug Menu");
@@ -100,6 +289,7 @@ class App : public SimpleRender {
         ImGui::TextColored(TEXT_PURPLE_COLOR, "TransY: %.2f", transY);
         ImGui::TextColored(TEXT_PURPLE_COLOR, "TransZ: %.2f", transZ);
         ImGui::TextColored(TEXT_PURPLE_COLOR, "FPS: %.2f", this->getFPS());
+        ImGui::TextColored(TEXT_PURPLE_COLOR, "Debug Entities: %zu", this->debug_entities.size());
       }
 
       // Window dimensions.
@@ -147,32 +337,66 @@ class App : public SimpleRender {
       ImGui::End();
     }
 
+    void drawImGui() override {
+      draw_debug_menu();
+      draw_asset_menu();
+    }
+
   public:
     App(unsigned int width, unsigned int height, const char* title)
       :SimpleRender(width, height, title) {}
 
-    ~App() {
-      for (Shape *s : this->entities)
-        if (s) delete s;
-    }
+    ~App() {}
 
     void enableLiveShaderUpdate() { shaderUpdateActive = true; }
     void disableLiveShaderUpdate() { shaderUpdateActive = false; }
 
     /* Configure/Load Data that will be used in Application */
     void Preload() override {
+      // Create 3 debug circles.
+      {
+        const glm::vec4 colors[3] = {
+          glm::vec4( 255.f, 0.f, 0.f, 255.f ),
+          glm::vec4( 0.f, 255.f, 0.f, 255.f ),
+          glm::vec4( 0.f, 0.f, 255.f, 255.f ),
+        };
+
+        for ( size_t i = 0; i < 3; i++ ) {
+          std::shared_ptr<Shader> shader = std::make_shared<Shader>();
+          shader->compile( "./shaders/shader.vert", "./shaders/shader2.frag" );
+
+          auto circle = Circle::create(
+            ( WIDTH / 2.f ), ( HEIGHT / 2.f ) + 300.f,
+            10.f,  // radius
+            shader, nullptr,
+            2000   // quality = data points
+          );
+          std::shared_ptr<Shape> e = std::move( circle );
+
+          e->buffer->solid_color = colors[i];
+
+          e->set_origin( e->get_center_vec() );
+          this->debug_entities.push_back( e );
+
+          // set to hidden by default.
+          e->set_hidden( true );
+        }
+      }
+
       // Setting up entities.
       {
         // Custom shader.
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
 
-        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
+        auto rect = (Rectangle::create(
           (WIDTH / 2.f) + 100.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
           "./textures/615-checkerboard.png"
-        });
+        ));
+
+        std::shared_ptr<Shape> e = std::move(rect);
 
         e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
@@ -182,12 +406,13 @@ class App : public SimpleRender {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
         shader->compile("./shaders/shader.vert", "./shaders/shader.frag");
 
-        Shape *e = reinterpret_cast<Shape*>(new Rectangle{
+        auto rect = (Rectangle::create(
           (WIDTH / 2.f) + - 450.f, HEIGHT / 3.f,
           400.f, 350.f,
           shader,
           "./textures/texture.png"
-        });
+        ));
+        std::shared_ptr<Shape> e = std::move( rect );
 
         e->set_origin(e->get_center_vec());
         this->entities.push_back(e);
@@ -199,7 +424,8 @@ class App : public SimpleRender {
 
         double x = (WIDTH / 2.f);
         double y = (HEIGHT / 2.f) - 200.f;
-        Shape *e = reinterpret_cast<Shape*>(new Polygon{
+
+        auto poly = Polygon::create(
           {
             {x,           y},
             {x + 100.0,   y},
@@ -209,29 +435,37 @@ class App : public SimpleRender {
             {x + 200.0,   y - 100.0}
           },
           shader,
-          "./textures/615-checkerboard.png",
-        });
+          "./textures/615-checkerboard.png"
+        );
 
-        // e->set_origin(e->get_center_vec());
+        std::shared_ptr<Shape> e = std::move( poly );
         this->entities.push_back(e);
       }
 
       {
         std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-        shader->compile("./shaders/shader.vert", "./shaders/shader2.frag");
+        shader->compile( "./shaders/shader.vert", "./shaders/shader2.frag" );
 
-        Shape *e = reinterpret_cast<Shape*>(new Circle{
-          (WIDTH / 2.f), (HEIGHT / 2.f) + 300.f,
-          100.f,    // radius
+        auto circle = Circle::create(
+          ( WIDTH / 2.f ), ( HEIGHT / 2.f ) + 300.f,
+          100.f,  // radius
           shader,
           "./textures/615-checkerboard.png",
-          // nullptr,  // no texture
-          2000       // quality = data points
-        });
+          2000  // quality = data points
+        );
+        std::shared_ptr<Shape> e = std::move( circle );
 
-        // useSolidColor(shader.get(), glm::vec4(255.f, 0.f, 0.f, 255.f));
-        e->set_origin(e->get_center_vec());
-        this->entities.push_back(e);
+        // set fallback color
+        e->buffer->solid_color = glm::vec4(255.f, 0.f, 0.f, 255.f);
+        e->set_origin( e->get_center_vec() );
+        this->entities.push_back( e );
+      }
+
+      // WIP: Needs work
+      {
+        auto obj                 = ShapeFromObjFile::create( "./assets/tinker.obj" );
+        std::shared_ptr<Shape> e = std::move( obj );
+        this->entities.push_back( e );
       }
 
       spdlog::info("Loaded entities -> {}", this->entities.size());
@@ -284,50 +518,52 @@ class App : public SimpleRender {
       glUniform4f(uniformSolidColor, vertexColor.r, vertexColor.g, vertexColor.b, vertexColor.a);
     }
 
-    /* Main Draw location of Application */
-    void Draw() override {
-      // Output FPS to Window Title
-      sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
-      glfwSetWindowTitle(window, titleBuffer);
+    void _draw_shape(const Shape* shape) {
+        // Skip hidden shapes.
+        if ( shape->is_hidden() ) { return; }
 
+        auto &bd = shape->buffer;
 
-      // Translate them entities.
-      double gl_time = glfwGetTime();
-      glm::vec2 trans{sin(gl_time), 0.f};
-
-      // Draw entities.
-      for (Shape *entity : this->entities) {
-        const BufferData &bd = entity->buffer;
-
-        entity->translate(trans);
-        entity->rotate(0.01f);
-        entity->scale(glm::vec2{ 1.f + (float)sin(gl_time) * 0.0015f });
-        entity->update();
+        // Translate them entities.
+        // double gl_time = glfwGetTime();
+        // glm::vec2 trans{sin(gl_time), 0.f};
+        // entity->translate(trans);
+        // entity->rotate(0.01f);
+        // entity->scale(glm::vec2{ 1.f + (float)sin(gl_time) * 0.0015f });
+        // entity->update();
 
         // Activate the bound shader program.
-        bd.shader->use();
+        bd->shader->use();
 
         // Pass in the uniform values into each of the vertex shader programs.
-        updateUniforms(bd.shader.get());
+        updateUniforms(bd->shader.get());
 
         // Enable aPos Attribute
         glEnableVertexAttribArray(0);
 
         // Bind Vertex Array Object
-        glBindVertexArray(bd.VAO);
-
-        // Bind Index Buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
+        glBindVertexArray(bd->vao_index);
 
         // Bind the Texture
-        if (bd.texture) bd.texture->bind(0);
-        else useSolidColor(bd.shader.get(), glm::vec4(255.f, 0.f, 0.f, 255.f));
+        if (bd->texture) { bd->texture->bind(0);
+        } else {
+          useSolidColor( bd->shader.get(), bd->solid_color );
+        }
 
-        // Draw
-        glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
+        // PERFORMANCE: refactor index buffer struct to use multiple buffers.
+        // see: https://docs.gl/gl3/glGenBuffers
+        for ( const auto& ibuf : bd->index_buffer_ptr->buffers ) {
+          // Bind Index Buffer
+          glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf->get_gl_buffer_index());
+
+          // Draw
+          for ( auto &buffer : bd->index_buffer_ptr->buffers ) {
+            glDrawElements( GL_TRIANGLES, buffer->size(), GL_UNSIGNED_INT, nullptr );
+          }
+        }
 
         // Unbind the Texture
-        if (bd.texture) bd.texture->unbind();
+        if (bd->texture) bd->texture->unbind();
 
         // Disable aPos Attribute
         glDisableVertexAttribArray(0);
@@ -336,8 +572,18 @@ class App : public SimpleRender {
         glUseProgram(0);
 
         // Live update each shader on mod.
-        if (this->shaderUpdateActive) bd.shader->liveGLSLUpdateShaders();
-      }
+        if (this->shaderUpdateActive) bd->shader->liveGLSLUpdateShaders();
+    }
+
+    /* Main Draw location of Application */
+    void Draw() override {
+      // Output FPS to Window Title
+      sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
+      glfwSetWindowTitle(window, titleBuffer);
+
+      // Draw entities.
+      for ( auto &entity : this->debug_entities ) { this->_draw_shape( entity.get() ); }
+      for ( auto &entity : this->entities ) { this->_draw_shape( entity.get() ); }
     }
 };
 

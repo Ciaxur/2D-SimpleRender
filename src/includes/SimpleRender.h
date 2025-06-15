@@ -2,13 +2,8 @@
 
 // Core Libraries
 #include <spdlog/spdlog.h>
-#include <stdio.h>
-#include <string.h>
-
 #include <cstring>
-#include <fstream>
 #include <memory>
-#include <iostream>
 #include <vector>
 
 // OpenGL Libraries
@@ -25,8 +20,6 @@
 
 // Project Libraries
 #include "BufferData.h"
-#include "Shader.h"
-
 
 
 class SimpleRender {
@@ -44,7 +37,7 @@ class SimpleRender {
 
 
   protected:  // Shared Variables
-    std::vector<BufferData> bufferData;  // Store References the Buffer Data
+    std::vector<std::shared_ptr<BufferData>> buffer_data;  // Store References the Buffer Data
 
   private:  // Private Methods (Static - Callbacks)
     /* Called when Key Pressed */

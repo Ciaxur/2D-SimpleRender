@@ -1,25 +1,19 @@
 #pragma once
 
+#include <memory>
 #include "Shape.h"
 
 
-class Circle: protected Shape {
+class Circle: public Shape {
   private:
+    Circle( const double r, std::shared_ptr<BufferData> buffer );
     double radius;
 
   public:
-    /**
-     * Initializes a circle instance.
-     *
-     * @param x Position on x-axis
-     * @param y Position on y-axis
-     * @param r Circle's radius
-     * @param shader Pointer to the shader used
-     * @param texturePath Optional path to the shape texture
-     * @param quality Number of points to generate for the circle
-    */
-    Circle(double, double, double, std::shared_ptr<Shader>, const char*, size_t);
+    static std::shared_ptr<Circle> create(
+      const double x, const double y, const double r, const std::shared_ptr<Shader> shader, const char* texturePath, const size_t quality = 200
+    );
     ~Circle();
 
-  glm::vec3 get_center_vec();
+    glm::vec3 get_center_vec();
 };

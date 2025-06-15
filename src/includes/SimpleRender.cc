@@ -1,4 +1,5 @@
 #include "SimpleRender.h"
+#include <iterator>
 
 /**
  ***********************************************************
@@ -121,17 +122,16 @@ void SimpleRender::Draw() {
   sprintf(titleBuffer, "%s [%.2f FPS]", title, getFPS());
   glfwSetWindowTitle(window, titleBuffer);
 
-
   // Render all Buffer Data
-  for (BufferData &bd : bufferData) {
+  for ( auto &bd : buffer_data ) {
     // Activate the bound shader program.
-    bd.shader->use();
+    bd->shader->use();
 
     /* Update Uniform values */
     {
-      GLint u_time = glGetUniformLocation(bd.shader->ID, "u_time");
-      GLint u_mouse = glGetUniformLocation(bd.shader->ID, "u_mouse");
-      GLint u_res = glGetUniformLocation(bd.shader->ID, "u_res");
+      GLint u_time = glGetUniformLocation(bd->shader->ID, "u_time");
+      GLint u_mouse = glGetUniformLocation(bd->shader->ID, "u_mouse");
+      GLint u_res = glGetUniformLocation(bd->shader->ID, "u_res");
 
       // Update Uniform Data
       glUniform1f(u_time, glfwGetTime());
@@ -150,19 +150,30 @@ void SimpleRender::Draw() {
     glEnableVertexAttribArray(0);
 
     // Bind Vertex Array Object
-    glBindVertexArray(bd.VAO);
-
-    // Bind Indicies
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bd.indiciesBuffer);
+    glBindVertexArray(bd->vao_index);
 
     // Bind the Texture
-    if (bd.texture) bd.texture->bind(0);
+    if (bd->texture) bd->texture->bind(0);
 
-    // Draw the Elements
-    glDrawElements(GL_TRIANGLES, bd.indiciesElts, GL_UNSIGNED_INT, nullptr);
+    // PERFORMANCE: refactor index buffer struct to use multiple buffers.
+    // see: https://docs.gl/gl3/glGenBuffers
+    for ( const auto& ibuf : bd->index_buffer_ptr->buffers ) {
+      // Bind Indicies
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibuf->get_gl_buffer_index());
+
+      // Draw the Elements
+      for (auto& elt : bd->index_buffer_ptr->buffers) {
+        glDrawElements(
+          GL_TRIANGLES,
+          elt->size(),
+          GL_UNSIGNED_INT,
+          nullptr
+        );
+      }
+    }
 
     // Unbind the Texture
-    if (bd.texture) bd.texture->unbind();
+    if (bd->texture) bd->texture->unbind();
 
     // Finished with aPos Attribute
     glDisableVertexAttribArray(0);
@@ -175,49 +186,64 @@ void SimpleRender::Draw() {
 void SimpleRender::Preload() {
   // Load in Default Shaders
   std::shared_ptr<Shader> shader = std::make_shared<Shader>();
-  shader->compile("Shaders/shader.vert", "Shaders/shader.frag");
+  shader->compile("shaders/shader.vert", "shaders/shader.frag");
 
   // Create Object1
+  const size_t vertex_elts = 4;
   GLdouble verticies[] = {
-    // Positions<vec3>		RGBA<vec4>					// Texture Coordinates<vec2>
+    // Positions<vec3>		RGBA<vec4>					      // Texture Coordinates<vec2>
     -0.4f, -0.2f, 0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
     -0.2f, -0.2f, 0.0f,   0.0f, 1.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-    -0.4f, 0.2f, 0.0f,  0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-    -0.2f, 0.2f, 0.0f,  1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+    -0.4f,  0.2f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+    -0.2f,  0.2f, 0.0f,   1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
   };
+  std::shared_ptr<Buffer<GLdouble>> vertex_data( Buffer<GLdouble>::create( verticies, std::size( verticies ) ) );
 
   GLuint indicies[] = {
     0, 1, 2,  // First Triangle
     1, 2, 3   // Second Triangle
   };
+  std::shared_ptr<IndexBuffer> index_data( IndexBuffer::create() );
+  index_data->buffers.emplace_back( Buffer<GLuint>::create( indicies, std::size( indicies ) ) );
 
   // Create and Bind Data to Buffer
-  bufferData.push_back(
-    CreateBuffer::static_float(verticies, sizeof(verticies), indicies, sizeof(indicies), shader)
-  );
-
+  buffer_data.emplace_back( BufferData::create_static_float( vertex_data, index_data, shader ) );
 
   // Create Object2
   GLdouble verticies2[] = {
-    // Positions<vec3>		RGB<vec4>					// Texture Coordinates<vec2>
-    0.0f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,   // Bottom-Left
-    0.4f, 0.3f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,   // Bottom-Right
-    0.0f, -0.3f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // Top-Left
-    0.4f, -0.3f, 0.0f, 0.5f, 0.0f, 0.5f, 1.0f, 1.0f, 1.0f,  // Top-Right
+    // Positions<vec3>		        RGB<vec4>					    // Texture Coordinates<vec2>
+    0.0f,  0.3f, 0.0f, 0.0f,      1.0f, 0.0f, 1.0f,     0.0f, 0.0f,   // Bottom-Left
+    0.4f,  0.3f, 0.0f, 0.0f,      1.0f, 0.0f, 1.0f,     1.0f, 0.0f,   // Bottom-Right
+    0.0f, -0.3f, 0.0f, 1.0f,      1.0f, 1.0f, 1.0f,     0.0f, 1.0f,   // Top-Left
+    0.4f, -0.3f, 0.0f, 0.5f,      0.0f, 0.5f, 1.0f,     1.0f, 1.0f,   // Top-Right
   };
-  bufferData.push_back(
-    CreateBuffer::static_float(verticies2, sizeof(verticies2), indicies, sizeof(indicies), shader)
-  );
+  std::shared_ptr<Buffer<GLdouble>> obj2( Buffer<GLdouble>::create(
+    verticies2,
+    // vec3 vertex points
+    vertex_elts * 3 +
+
+    // vec4 RGBA values
+    vertex_elts * 4 +
+
+    // vec2 texture coordinates
+    vertex_elts * 2
+  ));
+  buffer_data.emplace_back( BufferData::create_static_float( obj2, index_data, shader ) );
 
 
   // DEBUG: Output Data Created
   int i = 0;
-  for (BufferData &bd : bufferData) {
-    std::cout << "Buffer[" << i << "]:\n";
-    std::cout << "\tIndexBuffer: " << bd.indiciesBuffer << '\n';
-    std::cout << "\tIndexElements: " << bd.indiciesElts << '\n';
-    std::cout << "\tVertexBuffer: " << bd.verticiesBuffer << '\n';
-    std::cout << "\tTextureID: " << bd.texture->textureID << "\n\n";
+  for ( auto &bd : buffer_data ) {
+    spdlog::info( "Buffer[%d]:", i );
+
+    spdlog::info( "\tIndexElements:" );
+    for ( auto &index_buf_elt : bd->index_buffer_ptr->buffers ) {
+      spdlog::info( "\t\t id: %u", index_buf_elt->get_gl_buffer_index() );
+      spdlog::info( "\t\t size: %lu", index_buf_elt->size() );
+    }
+
+    spdlog::info( "\tVertexBuffer: %d", bd->vertex_buffer_ptr->get_gl_buffer_index() );
+    spdlog::info( "\tTextureID: %d", bd->texture->textureID );
   }
 }
 
@@ -245,7 +271,7 @@ void SimpleRender::drawImGui() {
  ***********************************************************
  */
 
-SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h), bufferData({}) {
+SimpleRender::SimpleRender(unsigned int w, unsigned int h, const char *title) : WIDTH(w), HEIGHT(h), buffer_data({}) {
   this->title = title;
   InitRender();
 }
@@ -257,12 +283,6 @@ SimpleRender::~SimpleRender() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
-
-
-  /* Free Up Buffer Data */
-  for (BufferData &bf : bufferData) {
-    BufferData::freeBufferData(&bf);
-  }
 
   /* Destroy Resources */
   glfwDestroyWindow(window);

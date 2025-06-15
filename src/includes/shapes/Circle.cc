@@ -1,11 +1,24 @@
 #include "Circle.h"
 #include "utils/common.h"
 #include <glm/glm.hpp>
+#include <memory>
 #include <spdlog/spdlog.h>
 
 #define MIN_QUALITY_LIMIT 200
 
-Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, const char* texturePath, size_t quality = 200) {
+Circle::Circle( const double r, std::shared_ptr<BufferData> buffer ) : Shape( buffer ), radius( r ) {}
+
+/**
+ * Initializes a circle instance.
+ *
+ * @param x Position on x-axis
+ * @param y Position on y-axis
+ * @param r Circle's radius
+ * @param shader Pointer to the shader used
+ * @param texturePath Optional path to the shape texture
+ * @param quality Number of points to generate for the circle
+*/
+std::shared_ptr<Circle> Circle::create(const double x, const double y, const double r, const std::shared_ptr<Shader> shader, const char* texturePath, const size_t quality) {
   // Ensure we hit the minimum quality requirement.
   assert( quality >= MIN_QUALITY_LIMIT );
   constexpr double HALF_PI               = glm::half_pi<double>();
@@ -34,27 +47,23 @@ Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, con
   const double max_y = y + ( r * glm::sin(HALF_PI) );
   const double min_y = y + ( r * glm::sin(THREE_OVER_TWO_PI) );
 
-  // Origin is the center of the circle.
-  this->radius = r;
-  this->set_origin(glm::vec3{ x, y, 0.f });
-
   // Generate circle verticies.
   // PI Chart -> https://tinyurl.com/5mm8nm9c
   size_t v_index = 0;
 
   // Allocate vertex & index buffer. Index buffer has 3 data points cause
   // triangles.
-  GLdouble *verticies  = new GLdouble[VERTEX_ARRAY_SIZE];
-  GLuint  *indicies   = new GLuint[INDICIES_ARRAY_SIZE];
+  std::shared_ptr<Buffer<GLdouble>> verticies( Buffer<GLdouble>::create( VERTEX_ARRAY_SIZE ) );
+  GLuint *indicies = new GLuint[INDICIES_ARRAY_SIZE];
 
   // Add initial data point in the center of the circle.
-  verticies[v_index]      = x;
-  verticies[v_index + 1]  = y;
-  verticies[v_index + 2]  = 0.f;
-  verticies[v_index + 3]  = 0.f;
-  verticies[v_index + 4]  = 0.f;
-  verticies[v_index + 5]  = 0.f;
-  verticies[v_index + 6]  = 0.f;
+  verticies->get_buffer()[v_index]      = x;
+  verticies->get_buffer()[v_index + 1]  = y;
+  verticies->get_buffer()[v_index + 2]  = 0.f;
+  verticies->get_buffer()[v_index + 3]  = 0.f;
+  verticies->get_buffer()[v_index + 4]  = 0.f;
+  verticies->get_buffer()[v_index + 5]  = 0.f;
+  verticies->get_buffer()[v_index + 6]  = 0.f;
 
   /*
     Map the texture to each vertex.
@@ -73,8 +82,8 @@ Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, con
       | (0,0)                     (1,0) |
       -----------------------------------
   */
-  verticies[v_index + 7]  = normalizeFloat( x, min_x, max_x, 0.f, 1.f );
-  verticies[v_index + 8]  = normalizeFloat( y, min_y, max_y, 0.f, 1.f );
+  verticies->get_buffer()[v_index + 7]  = normalizeFloat( x, min_x, max_x, 0.f, 1.f );
+  verticies->get_buffer()[v_index + 8]  = normalizeFloat( y, min_y, max_y, 0.f, 1.f );
   v_index += 9;
 
   // Now generate circle data points.
@@ -89,19 +98,19 @@ Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, con
     const double _y = ( glm::sin(v) * r ) + y;
 
     // Coordinates.
-    verticies[v_index]      = _x;
-    verticies[v_index + 1]  = _y;
-    verticies[v_index + 2]  = 0.f;
+    verticies->get_buffer()[v_index]      = _x;
+    verticies->get_buffer()[v_index + 1]  = _y;
+    verticies->get_buffer()[v_index + 2]  = 0.f;
 
     // RGBA
-    verticies[v_index + 3]  = 0.f;
-    verticies[v_index + 4]  = 0.f;
-    verticies[v_index + 5]  = 0.f;
-    verticies[v_index + 6]  = 0.f;
+    verticies->get_buffer()[v_index + 3]  = 0.f;
+    verticies->get_buffer()[v_index + 4]  = 0.f;
+    verticies->get_buffer()[v_index + 5]  = 0.f;
+    verticies->get_buffer()[v_index + 6]  = 0.f;
 
     // Map the texture to each vertex point around the circle.
-    verticies[v_index + 7]  = normalizeFloat( _x, min_x, max_x, 0.f, 1.f );
-    verticies[v_index + 8]  = normalizeFloat( _y, min_y, max_y, 0.f, 1.f );
+    verticies->get_buffer()[v_index + 7]  = normalizeFloat( _x, min_x, max_x, 0.f, 1.f );
+    verticies->get_buffer()[v_index + 8]  = normalizeFloat( _y, min_y, max_y, 0.f, 1.f );
   }
 
   // Generate the indicies to map the center of the circle to 2 points across the
@@ -117,19 +126,21 @@ Circle::Circle(double x, double y, double r, std::shared_ptr<Shader> shader, con
     indicies[i + 2] = value;
   }
 
-  this->buffer = CreateBuffer::dynamic_float(
-    verticies,
-    VERTEX_ARRAY_SIZE * sizeof(GLdouble),
-    indicies,
-    INDICIES_ARRAY_SIZE * sizeof(GLuint),
-    shader
-  );
-  if (texturePath)
-    this->buffer.texture = new Texture(texturePath);
-
-  // Free up heap.
-  delete[] verticies;
+  // Generate buffer.
+  std::shared_ptr<IndexBuffer> index_data( IndexBuffer::create() );
+  index_data->buffers.emplace_back( Buffer<GLuint>::create( indicies, INDICIES_ARRAY_SIZE ) );
   delete[] indicies;
+
+  std::shared_ptr<BufferData> buffer = BufferData::create_dynamic_float( verticies, index_data, shader );
+
+  if (texturePath) {
+    buffer->texture = new Texture(texturePath);
+  }
+
+  // // Origin is the center of the circle.
+  std::shared_ptr<Circle> obj( new Circle( r, buffer ) );
+  obj->set_origin( glm::vec3{ x, y, 0.f } );
+  return obj;
 }
 
 Circle::~Circle() {}

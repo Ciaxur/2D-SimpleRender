@@ -1,23 +1,17 @@
 #pragma once
 
+#include <memory>
 #include "Shape.h"
 
-class Rectangle: protected Shape {
+class Rectangle: public Shape {
   private:
     double width, height;
+    Rectangle( const double width, const double height, const glm::vec3& origin, std::shared_ptr<BufferData> buffer );
 
   public:
-    /**
-     * Initializes a rectangle instance.
-     *
-     * @param x Position on x-axis
-     * @param y Position on y-axis
-     * @param width Width of the rectangle
-     * @param height Height of the rectangle
-     * @param shader Pointer to the shader used
-     * @param texturePath Optional path to the shape texture
-    */
-    Rectangle(double, double, double, double, std::shared_ptr<Shader>, const char*);
+    static std::shared_ptr<Rectangle> create(
+      double x, double y, double width, double height, std::shared_ptr<Shader> shader, const char* texturePath
+    );
     ~Rectangle();
 
     glm::vec3 get_center_vec();

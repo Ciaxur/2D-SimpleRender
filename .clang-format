@@ -1,16 +1,33 @@
----
-Language:        Cpp
-FixNamespaceComments: false
-NamespaceIndentation: All
-AccessModifierOffset: -2
-BasedOnStyle: Google
-IndentWidth: 4
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+BasedOnStyle: google
 ColumnLimit: 120
-MaxEmptyLinesToKeep: 3
-UseTab: Never
-TabWidth: 4
-AllowShortIfStatementsOnASingleLine: true
-IndentCaseLabels: false
-ColumnLimit: 0
-...
 
+IndentWidth: 2
+AccessModifierOffset: 2
+IndentAccessModifiers: true
+ContinuationIndentWidth: 2
+UseTab: Never
+IndentCaseLabels: true
+
+# Spaces within braces and parentheses.
+Cpp11BracedListStyle: false
+SpacesInParentheses: true
+
+NamespaceIndentation: All
+FixNamespaceComments: false
+
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: false
+
+AlignConsecutiveAssignments: Consecutive
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 2
+
+BracedInitializerIndentWidth: 2
+ConstructorInitializerIndentWidth: 2
+
+AlignAfterOpenBracket: BlockIndent
+BreakAdjacentStringLiterals: true
+BreakInheritanceList: AfterComma

@@ -1,5 +1,6 @@
 #include "Shader.h"
 
+#include <filesystem>
 #include <fstream>
 #include <spdlog/spdlog.h>
 #include <sys/stat.h>
@@ -75,6 +76,16 @@ void Shader::compile(const char *vertFilePath, const char *fragFilePath) {
   // Store a copy of the shader file paths.
   this->fragmentShaderFilepath = fragFilePath;
   this->vertexShaderFilepath = vertFilePath;
+
+  // Make sure filepaths exist.
+  if (!std::filesystem::exists(vertFilePath)) {
+    spdlog::error("Failed to compile vertex shader {}: does not exist", vertFilePath);
+    exit(1);
+  }
+  if (!std::filesystem::exists(fragFilePath)) {
+    spdlog::error("Failed to compile fragment shader {}: does not exist", fragFilePath);
+    exit(1);
+  }
 
   // Initialize the Shaders
   GLuint fragShader = loadShader(fragFilePath, GL_FRAGMENT_SHADER);
